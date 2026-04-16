@@ -19,8 +19,39 @@
             overflow: hidden;
             height: 100vh;
             user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Fixed Vertical Container */
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px; /* Limits width on desktop */
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
+        /* Viewfinder fixed to 9:16 aspect ratio area */
+        .viewfinder-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            background: #111;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        #viewfinder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         /* Viewfinder Overlay */
         .grid-overlay {
             position: absolute;
@@ -49,14 +80,14 @@
         /* Zoom Rocker */
         .zoom-slider {
             -webkit-appearance: none;
-            width: 180px;
+            width: 160px;
             height: 40px;
             background: transparent;
             transform: rotate(-90deg);
             position: absolute;
-            right: -60px;
+            right: -55px;
             top: 50%;
-            margin-top: -90px;
+            margin-top: -80px;
             z-index: 40;
         }
         .zoom-slider::-webkit-slider-runnable-track {
@@ -79,37 +110,45 @@
         }
         .off-screen { transform: translateY(100%); opacity: 0; }
         
-        #viewfinder {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
         .active-tab { color: var(--accent) !important; border-bottom: 2px solid var(--accent); }
         .shutter-inner { transition: transform 0.1s; }
         .shutter-inner:active { transform: scale(0.85); }
+
+        /* Bottom Control Bar takes remaining space */
+        .controls-container {
+            flex-grow: 1;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 24px;
+            padding-bottom: var(--safe-bottom);
+        }
     </style>
 </head>
 <body>
 
-    <div class="relative w-full h-full flex flex-col overflow-hidden">
+    <div class="app-container">
         
+        <!-- TOP HUD -->
         <div class="absolute top-0 left-0 w-full z-40 px-6 pt-[var(--safe-top)] flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
             <div class="flex gap-4 items-center">
-                <button id="toggle-flash" class="w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-bolt-slash"></i></button>
-                <button id="toggle-grid" class="w-10 h-10 flex items-center justify-center opacity-50"><i class="fa-solid fa-table-cells"></i></button>
+                <button id="toggle-flash" class="w-10 h-10 flex items-center justify-center text-white"><i class="fa-solid fa-bolt-slash"></i></button>
+                <button id="toggle-grid" class="w-10 h-10 flex items-center justify-center opacity-50 text-white"><i class="fa-solid fa-table-cells"></i></button>
             </div>
             
             <div id="long-exp-tag" class="hidden bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded">LONG EXP</div>
             
-            <button id="switch-cam" class="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md">
+            <button id="switch-cam" class="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md text-white">
                 <i class="fa-solid fa-camera-rotate"></i>
             </button>
         </div>
 
-        <div class="flex-grow relative bg-zinc-900">
+        <!-- FIXED ASPECT VIEWPORT -->
+        <div class="viewfinder-container">
             <video id="viewfinder" autoplay playsinline muted></video>
             
+            <!-- Overlays -->
             <div id="grid-system" class="grid-overlay hidden">
                 <div class="grid-line-v grid-line-h"></div><div class="grid-line-v grid-line-h"></div><div class="grid-line-h"></div>
                 <div class="grid-line-v grid-line-h"></div><div class="grid-line-v grid-line-h"></div><div class="grid-line-h"></div>
@@ -118,20 +157,25 @@
             
             <div id="horizon" class="hidden"></div>
             
+            <!-- Zoom Rocker -->
             <input type="range" id="zoom-rocker" min="1" max="5" step="0.1" value="1" class="zoom-slider">
             
+            <!-- Screen Flash -->
             <div id="flash-bg" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50 transition-opacity"></div>
         </div>
 
-        <div class="bg-black/95 px-6 pb-[var(--safe-bottom)] pt-4 z-40">
-            <div class="flex justify-around text-[10px] font-bold tracking-widest text-zinc-500 mb-6 uppercase">
+        <!-- BOTTOM CONTROLS -->
+        <div class="controls-container">
+            <!-- Mode Tabs -->
+            <div class="flex justify-around text-[10px] font-bold tracking-widest text-zinc-500 mb-8 uppercase">
                 <button onclick="setMode('photo')" id="mode-photo" class="active-tab px-2 pb-1">Photo</button>
                 <button onclick="setMode('le')" id="mode-le" class="px-2 pb-1">Long Exp</button>
                 <button onclick="togglePanel('manual')" class="px-2 pb-1">Manual</button>
                 <button onclick="togglePanel('lab')" class="px-2 pb-1">Filter Lab</button>
             </div>
 
-            <div class="flex justify-between items-center">
+            <!-- Shutter Row -->
+            <div class="flex justify-between items-center px-2">
                 <button id="gallery-btn" class="w-12 h-12 bg-zinc-800 rounded-full overflow-hidden border border-white/20">
                     <img id="last-img" class="w-full h-full object-cover hidden">
                 </button>
@@ -142,25 +186,26 @@
                     </div>
                 </button>
 
-                <button onclick="togglePanel('filters')" class="w-12 h-12 flex items-center justify-center text-xl">
+                <button onclick="togglePanel('filters')" class="w-12 h-12 flex items-center justify-center text-xl text-white">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="panel-manual" class="fixed bottom-0 left-0 w-full bg-zinc-900/95 backdrop-blur-xl p-8 panel-slide off-screen z-[60] rounded-t-3xl border-t border-white/10">
+    <!-- FLOATING MANUAL PANEL -->
+    <div id="panel-manual" class="fixed bottom-0 left-50 translate-x-[-50%] w-full max-w-[500px] bg-zinc-900/95 backdrop-blur-xl p-8 panel-slide off-screen z-[60] rounded-t-3xl border-t border-white/10">
         <div class="flex justify-between items-center mb-8">
             <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Settings</h3>
-            <button onclick="togglePanel('manual')"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="togglePanel('manual')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-8">
             <div class="space-y-2">
-                <div class="flex justify-between text-[10px]"><span>ISO Sensitivity</span><span id="v-iso">400</span></div>
+                <div class="flex justify-between text-[10px]"><span>ISO Sensitivity</span><span id="v-iso" class="text-white">400</span></div>
                 <input type="range" id="s-iso" min="100" max="3200" value="400" class="w-full accent-yellow-400 h-1 bg-zinc-800 rounded-lg appearance-none">
             </div>
             <div class="space-y-2">
-                <div class="flex justify-between text-[10px]"><span>Shutter Speed</span><span id="v-ss">1/125</span></div>
+                <div class="flex justify-between text-[10px]"><span>Shutter Speed</span><span id="v-ss" class="text-white">1/125</span></div>
                 <input type="range" id="s-ss" min="1" max="1000" value="125" class="w-full accent-yellow-400 h-1 bg-zinc-800 rounded-lg appearance-none">
             </div>
             <div class="flex items-center justify-between pt-4 border-t border-white/5">
@@ -170,6 +215,7 @@
         </div>
     </div>
 
+    <!-- GALLERY VIEW -->
     <div id="gallery-layer" class="fixed inset-0 bg-black z-[100] panel-slide off-screen flex flex-col">
         <div class="pt-[var(--safe-top)] px-6 py-6 flex justify-between items-center border-b border-white/5">
             <h2 class="text-sm font-black tracking-tighter italic">GALLERY_INDEX</h2>
@@ -210,12 +256,12 @@
             const [track] = stream.getVideoTracks();
             const caps = track.getCapabilities();
             const rocker = document.getElementById('zoom-rocker');
-            if (caps.zoom) {
+            if (caps && caps.zoom) {
                 rocker.min = caps.zoom.min;
                 rocker.max = caps.zoom.max;
                 rocker.step = caps.zoom.step;
             }
-        } catch (e) { alert("Camera access required."); }
+        } catch (e) { console.error(e); }
     };
 
     // 3. UI Interactions
@@ -248,7 +294,7 @@
 
     document.getElementById('zoom-rocker').oninput = (e) => {
         const [track] = stream.getVideoTracks();
-        if (track.getCapabilities().zoom) {
+        if (track && track.getCapabilities && track.getCapabilities().zoom) {
             track.applyConstraints({ advanced: [{ zoom: e.target.value }] });
         }
     };
@@ -271,7 +317,6 @@
         }
 
         if (mode === 'le') {
-            // Blend 20 frames for 1s long exposure
             ctx.globalAlpha = 0.05;
             for(let i=0; i<20; i++){
                 ctx.drawImage(video, 0, 0);
