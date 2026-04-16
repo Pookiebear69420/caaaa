@@ -1,396 +1,1961 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ProCam Elite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --accent: #facc15; /* Professional Yellow */
-            --safe-top: env(safe-area-inset-top, 20px);
-            --safe-bottom: env(safe-area-inset-bottom, 20px);
-        }
-        body {
-            background: #000;
-            color: #fff;
-            font-family: 'Inter', -apple-system, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0705">
+<title>LOMINO</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+:root{
+  --bg:#0a0705;--bg2:#141009;--bg3:#1c1610;
+  --gold:#c8a84a;--gold2:#e8cc7a;--gold-dim:rgba(200,168,74,0.22);--gold-glow:rgba(200,168,74,0.45);
+  --copper:#8c4a22;--cream:#ede0c4;--cream-dim:rgba(237,224,196,0.55);
+  --dim:#6a5a40;--dim2:#4a3e2c;--red:#b03020;
+  --safe-top:env(safe-area-inset-top,44px);--safe-bottom:env(safe-area-inset-bottom,20px);
+  --safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);
+  --sheet-radius:14px;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Courier Prime',monospace;color:var(--cream);}
+#app{width:100vw;height:100vh;height:100dvh;position:relative;overflow:hidden;}
 
-        /* Fixed Vertical Container */
-        .app-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px; /* Limits width on desktop */
-            height: 100%;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        /* Viewfinder fixed to 9:16 aspect ratio area */
-        .viewfinder-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9 / 16;
-            background: #111;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-        
-        #viewfinder {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+/* ====== PERMISSION SCREEN ====== */
+#perm-screen{position:absolute;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;transition:opacity .5s;}
+#perm-screen.hide{opacity:0;pointer-events:none;}
+.perm-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:8px;}
+.perm-logo{font-family:'Playfair Display',serif;font-size:52px;color:var(--gold);letter-spacing:8px;text-shadow:0 0 40px var(--gold-glow),0 0 80px rgba(200,168,74,0.15);animation:logoGlow 3s ease-in-out infinite;}
+@keyframes logoGlow{0%,100%{text-shadow:0 0 40px var(--gold-glow),0 0 80px rgba(200,168,74,0.15);}50%{text-shadow:0 0 60px var(--gold-glow),0 0 120px rgba(200,168,74,0.25),0 0 160px rgba(200,168,74,0.08);}}
+.perm-tagline{font-size:9px;letter-spacing:4px;color:var(--dim);text-transform:uppercase;}
+.perm-divider{width:48px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:4px 0;}
+#perm-screen h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);letter-spacing:2px;text-align:center;font-weight:400;}
+#perm-screen p{font-size:11px;color:var(--dim);text-align:center;line-height:1.8;letter-spacing:.5px;max-width:280px;}
+#btn-allow-cam{background:rgba(200,168,74,0.08);border:1.5px solid var(--gold);color:var(--gold);font-family:'Courier Prime',monospace;font-size:12px;letter-spacing:3px;padding:14px 36px;border-radius:3px;cursor:pointer;margin-top:6px;transition:background .2s,box-shadow .2s;text-transform:uppercase;}
+#btn-allow-cam:active{background:rgba(200,168,74,0.18);box-shadow:0 0 24px rgba(200,168,74,0.2);}
+.perm-film-strip{display:flex;gap:2px;margin-top:16px;}
+.pfs{width:12px;height:8px;border:1px solid var(--dim2);border-radius:1px;opacity:0.4;}
+.pfs:nth-child(odd){opacity:0.2;}
 
-        /* Viewfinder Overlay */
-        .grid-overlay {
-            position: absolute;
-            inset: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            pointer-events: none;
-            opacity: 0.3;
-        }
-        .grid-line-v { border-right: 1px solid white; }
-        .grid-line-h { border-bottom: 1px solid white; }
+/* ====== VIEWFINDER ====== */
+#viewfinder-wrap{position:absolute;inset:0;}
+#video-el{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;}
+#viewfinder{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#grain-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:0;transition:opacity .3s;}
+#vignette-overlay{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 72% 72% at 50% 50%,transparent 38%,rgba(0,0,0,0.85) 100%);transition:opacity .3s;}
+#screen-filter-el{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;}
+#screen-filter-el.scanlines{opacity:1;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.09),rgba(0,0,0,0.09) 1px,transparent 1px,transparent 3px);}
+#screen-filter-el.lightleak{opacity:1;background:radial-gradient(ellipse at 0% 100%,rgba(220,80,20,0.28) 0%,transparent 55%),radial-gradient(ellipse at 100% 0%,rgba(255,180,0,0.18) 0%,transparent 45%);}
+#screen-filter-el.dust{opacity:1;background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,0.06) 0.5px,transparent 1px),radial-gradient(circle at 80% 70%,rgba(255,255,255,0.05) 0.5px,transparent 1px),radial-gradient(circle at 55% 15%,rgba(255,255,255,0.07) 0.5px,transparent 1px),radial-gradient(circle at 10% 80%,rgba(255,255,255,0.04) 0.5px,transparent 1px),radial-gradient(circle at 90% 40%,rgba(255,255,255,0.06) 0.5px,transparent 1px),radial-gradient(circle at 40% 90%,rgba(255,255,255,0.05) 0.5px,transparent 1px);}
+#screen-filter-el.vhs{opacity:1;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,0.06),rgba(0,0,0,0.06) 2px,transparent 2px,transparent 4px);box-shadow:inset 0 0 60px rgba(0,255,100,0.04),inset 0 0 30px rgba(255,0,80,0.03);}
 
-        /* Leveler */
-        #horizon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 60%;
-            height: 2px;
-            background: rgba(255,255,255,0.5);
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
+/* Aspect ratio masks */
+#mask-top,#mask-bot{position:absolute;left:0;right:0;background:#000;z-index:3;pointer-events:none;transition:height .3s cubic-bezier(.4,0,.2,1);}
+#mask-top{top:0;}
+#mask-bot{bottom:0;}
 
-        /* Zoom Rocker */
-        .zoom-slider {
-            -webkit-appearance: none;
-            width: 160px;
-            height: 40px;
-            background: transparent;
-            transform: rotate(-90deg);
-            position: absolute;
-            right: -55px;
-            top: 50%;
-            margin-top: -80px;
-            z-index: 40;
-        }
-        .zoom-slider::-webkit-slider-runnable-track {
-            height: 2px;
-            background: rgba(255,255,255,0.3);
-        }
-        .zoom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 30px;
-            background: white;
-            border-radius: 2px;
-            margin-top: -14px;
-            border: 1px solid black;
-        }
+/* Grid overlay */
+#grid-overlay{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .25s;}
+#grid-overlay.show{opacity:1;}
+#grid-overlay svg{width:100%;height:100%;}
 
-        /* Smooth Panels */
-        .panel-slide {
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
-        }
-        .off-screen { transform: translateY(100%); opacity: 0; }
-        
-        .active-tab { color: var(--accent) !important; border-bottom: 2px solid var(--accent); }
-        .shutter-inner { transition: transform 0.1s; }
-        .shutter-inner:active { transform: scale(0.85); }
+/* Focus ring */
+#focus-ring{position:absolute;width:70px;height:70px;border:1.5px solid var(--gold2);border-radius:3px;pointer-events:none;z-index:5;transform:translate(-50%,-50%) scale(1.4);opacity:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .2s;top:50%;left:50%;}
+#focus-ring.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+#focus-ring.locked{border-color:#f5c842;animation:aelock .3s ease-out;}
+@keyframes aelock{0%{box-shadow:0 0 0 0 rgba(245,200,66,.6);}100%{box-shadow:0 0 0 12px rgba(245,200,66,0);}}
+#focus-ring::before,#focus-ring::after,#focus-ring-tl,#focus-ring-br{content:'';position:absolute;width:10px;height:10px;}
+#focus-ring::before{top:-1px;left:-1px;border-top:2px solid var(--gold2);border-left:2px solid var(--gold2);}
+#focus-ring::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--gold2);border-right:2px solid var(--gold2);}
 
-        /* Bottom Control Bar takes remaining space */
-        .controls-container {
-            flex-grow: 1;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 24px;
-            padding-bottom: var(--safe-bottom);
-        }
-    </style>
+/* Timer overlay */
+#timer-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s;}
+#timer-overlay.show{opacity:1;}
+#timer-num{font-family:'Playfair Display',serif;font-size:120px;color:#fff;text-shadow:0 0 60px rgba(200,168,74,0.8),0 4px 30px rgba(0,0,0,0.8);font-weight:700;line-height:1;animation:timerPulse 1s ease-in-out;}
+@keyframes timerPulse{0%{transform:scale(1.4);opacity:.5;}100%{transform:scale(1);opacity:1;}}
+
+/* Zoom indicator */
+#zoom-badge{position:absolute;bottom:160px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--gold);letter-spacing:2px;background:rgba(0,0,0,0.5);padding:3px 9px;border-radius:20px;border:1px solid var(--gold-dim);z-index:10;opacity:0;transition:opacity .3s;pointer-events:none;}
+#zoom-badge.show{opacity:1;}
+
+/* AE-L badge */
+#ael-badge{position:absolute;top:calc(var(--safe-top) + 54px);left:50%;transform:translateX(-50%);font-size:9px;color:#f5c842;letter-spacing:2px;background:rgba(0,0,0,0.6);padding:3px 9px;border-radius:2px;border:1px solid rgba(245,200,66,0.5);z-index:10;opacity:0;transition:opacity .3s;pointer-events:none;}
+#ael-badge.show{opacity:1;}
+
+/* Flash overlay */
+#flash-overlay{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:100;}
+#flash-overlay.flash{animation:flashAnim .45s ease-out forwards;}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+
+/* Date stamp on photo */
+#datestamp-overlay{position:absolute;bottom:160px;right:16px;font-family:'Courier Prime',monospace;font-size:9px;color:rgba(255,160,0,0.85);letter-spacing:1px;z-index:6;pointer-events:none;text-shadow:0 0 6px rgba(255,100,0,0.5);display:none;}
+#datestamp-overlay.show{display:block;}
+
+/* ====== HUD TOP ====== */
+#hud-top{position:absolute;top:0;left:0;right:0;padding:calc(var(--safe-top) + 4px) 14px 12px;background:linear-gradient(to bottom,rgba(0,0,0,0.78) 0%,transparent 100%);z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+#brand-name{font-family:'Playfair Display',serif;font-size:18px;letter-spacing:5px;color:var(--gold);text-shadow:0 0 14px var(--gold-glow);flex-shrink:0;}
+#hud-mid{display:flex;gap:5px;align-items:center;flex:1;justify-content:center;}
+.sbadge{font-size:9.5px;font-family:'Courier Prime',monospace;color:var(--cream-dim);background:rgba(0,0,0,0.5);border:1px solid var(--gold-dim);padding:3px 7px;border-radius:2px;letter-spacing:.5px;cursor:pointer;transition:border-color .2s,color .2s;white-space:nowrap;}
+.sbadge:active,.sbadge.active{border-color:var(--gold);color:var(--gold);}
+#hud-right{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.hud-icon-btn{width:30px;height:30px;background:rgba(0,0,0,0.45);border:1px solid var(--gold-dim);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:border-color .2s,transform .1s;}
+.hud-icon-btn:active{transform:scale(.88);border-color:var(--gold);}
+.hud-icon-btn.active{border-color:var(--gold);background:rgba(200,168,74,0.15);}
+
+/* ====== DIALS ====== */
+#dials-panel{position:absolute;top:50%;left:0;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;padding:8px 7px;z-index:10;}
+.dial{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.dial label{font-size:7.5px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;}
+.dial-val{font-size:11px;color:var(--cream);letter-spacing:.5px;}
+.dial-btns{display:flex;gap:2px;}
+.dbtn{width:22px;height:20px;background:rgba(0,0,0,0.55);border:1px solid var(--gold-dim);border-radius:2px;color:var(--gold);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:border-color .15s,background .15s;}
+.dbtn:active{border-color:var(--gold);background:rgba(200,168,74,0.15);}
+
+/* ====== FILTER NAME + COUNTER ====== */
+#filter-name-display{position:absolute;bottom:156px;left:50%;transform:translateX(-50%);font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:rgba(237,224,196,0.88);text-shadow:0 1px 8px rgba(0,0,0,0.9);white-space:nowrap;z-index:10;pointer-events:none;transition:opacity .3s;}
+#photo-counter{position:absolute;bottom:156px;right:18px;font-size:9px;color:var(--dim);letter-spacing:1.5px;z-index:10;}
+#ev-meter{position:absolute;bottom:156px;left:18px;z-index:10;display:flex;align-items:center;gap:4px;}
+#ev-bar{width:64px;height:3px;background:var(--gold-dim);border-radius:2px;position:relative;overflow:hidden;}
+#ev-fill{height:100%;background:var(--gold);border-radius:2px;width:50%;transition:width .15s;}
+#ev-label{font-size:8px;color:var(--dim);letter-spacing:1px;}
+
+/* ====== BOTTOM CONTROLS ====== */
+#controls-bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 22px calc(var(--safe-bottom) + 14px);background:linear-gradient(to top,rgba(0,0,0,0.86) 0%,transparent 100%);z-index:10;display:flex;align-items:center;justify-content:space-between;}
+.ctrl-group{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.ctrl-icon-btn{width:46px;height:46px;border-radius:50%;background:rgba(16,10,5,0.82);border:1.5px solid var(--gold-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;transition:transform .15s,border-color .15s,background .15s;font-size:18px;}
+.ctrl-icon-btn:active{transform:scale(.9);}
+.ctrl-icon-btn.active{border-color:var(--gold);background:rgba(200,168,74,0.12);}
+.ctrl-icon-btn small{font-size:7.5px;color:var(--dim);letter-spacing:.5px;line-height:1;}
+#btn-roll{width:50px;height:50px;border-radius:7px;background:rgba(16,10,5,0.82);border:1.5px solid var(--gold);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;transition:transform .15s;}
+#btn-roll:active{transform:scale(.9);}
+#roll-thumb{width:100%;height:100%;object-fit:cover;display:none;}
+#roll-icon{font-size:20px;line-height:1;}
+#roll-count{font-size:8.5px;color:var(--gold);letter-spacing:.5px;}
+#btn-shutter{width:82px;height:82px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#e8e2d8,#9a908a);border:3.5px solid var(--gold);box-shadow:0 0 0 2px rgba(0,0,0,0.6),0 6px 20px rgba(0,0,0,0.75),inset 0 2px 6px rgba(255,255,255,0.35),inset 0 -2px 4px rgba(0,0,0,0.2);cursor:pointer;transition:transform .08s,box-shadow .08s;position:relative;flex-shrink:0;}
+#btn-shutter::after{content:'';position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 38% 28%,rgba(255,255,255,0.42),transparent 55%);}
+#btn-shutter::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(200,168,74,0.2);}
+#btn-shutter:active{transform:scale(.9);box-shadow:0 0 0 2px rgba(0,0,0,0.6),0 2px 8px rgba(0,0,0,0.7),inset 0 3px 7px rgba(0,0,0,0.28);}
+#btn-shutter.timer-active{animation:timerBlink 1s ease-in-out infinite;}
+@keyframes timerBlink{0%,100%{box-shadow:0 0 0 2px rgba(0,0,0,0.6),0 6px 20px rgba(0,0,0,0.75),inset 0 2px 6px rgba(255,255,255,0.35);}50%{box-shadow:0 0 0 2px rgba(0,0,0,0.6),0 6px 20px rgba(200,168,74,0.5),inset 0 2px 6px rgba(255,255,255,0.35),0 0 28px rgba(200,168,74,0.4);}}
+#btn-shutter.shutter-ring{animation:shutterRing .5s ease-out;}
+@keyframes shutterRing{0%{box-shadow:0 0 0 2px rgba(200,168,74,.8),0 6px 20px rgba(0,0,0,.75),inset 0 2px 6px rgba(255,255,255,.35);}100%{box-shadow:0 0 0 18px rgba(200,168,74,0),0 6px 20px rgba(0,0,0,.75),inset 0 2px 6px rgba(255,255,255,.35);}}
+
+/* Snap preview */
+.snap-preview{position:absolute;bottom:162px;left:18px;width:52px;height:52px;border-radius:5px;border:1.5px solid var(--gold);object-fit:cover;transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .35s;opacity:0;z-index:15;cursor:pointer;}
+.snap-preview.show{transform:scale(1);opacity:1;}
+
+/* ====== FILTER SHEET ====== */
+#filter-sheet{position:absolute;bottom:0;left:0;right:0;max-height:60vh;background:linear-gradient(180deg,rgba(10,6,3,0.97) 0%,rgba(12,8,4,0.99) 100%);border-top:1.5px solid var(--gold);border-radius:var(--sheet-radius) var(--sheet-radius) 0 0;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.2,.6,1);z-index:20;display:flex;flex-direction:column;overflow:hidden;}
+#filter-sheet.open{transform:translateY(0);}
+#filter-sheet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;flex-shrink:0;}
+.sheet-drag{width:36px;height:3px;background:var(--gold-dim);border-radius:2px;margin:0 auto 10px;}
+#filter-sheet-header h2{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);letter-spacing:2.5px;}
+#sheet-btns{display:flex;gap:8px;}
+.sh-btn{font-size:10px;color:var(--gold);background:transparent;border:1px solid var(--gold-dim);padding:4px 10px;border-radius:2px;cursor:pointer;font-family:'Courier Prime',monospace;letter-spacing:.5px;transition:background .2s,border-color .2s;}
+.sh-btn:active{background:rgba(200,168,74,0.15);border-color:var(--gold);}
+/* Category tabs */
+#filter-cats{display:flex;gap:0;padding:0 18px 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1px solid var(--gold-dim);}
+#filter-cats::-webkit-scrollbar{display:none;}
+.fcat{font-size:9.5px;color:var(--dim);letter-spacing:1.5px;padding:7px 12px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;text-transform:uppercase;}
+.fcat.active{color:var(--gold);border-bottom-color:var(--gold);}
+/* Screen Filters row */
+.fsec-title{font-size:8px;color:var(--dim);letter-spacing:2px;padding:8px 18px 3px;flex-shrink:0;text-transform:uppercase;}
+.filter-scroll{display:flex;overflow-x:auto;padding:6px 14px 12px;gap:10px;scrollbar-width:none;flex-shrink:0;}
+.filter-scroll::-webkit-scrollbar{display:none;}
+.filter-item{flex-shrink:0;width:70px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;position:relative;}
+.filter-thumb-wrap{width:68px;height:68px;border-radius:6px;border:2px solid transparent;overflow:hidden;position:relative;background:#1a1208;transition:border-color .2s,transform .18s;}
+.filter-item.active .filter-thumb-wrap{border-color:var(--gold);transform:scale(1.07);}
+.filter-item canvas{width:68px;height:68px;display:block;}
+.filter-item-name{font-size:8px;color:var(--cream-dim);text-align:center;line-height:1.2;max-width:68px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.filter-item.active .filter-item-name{color:var(--gold);}
+.fav-btn{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;color:var(--dim);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:color .2s;}
+.fav-btn.faved{color:#f5c842;}
+.del-btn{position:absolute;top:3px;left:3px;width:18px;height:18px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;color:var(--dim);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:color .2s;}
+.del-btn:active{color:var(--red);}
+/* Screen filter chips */
+#screen-filter-panel{display:flex;gap:8px;padding:2px 16px 8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+#screen-filter-panel::-webkit-scrollbar{display:none;}
+.sf-chip{font-size:9.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--gold-dim);color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .2s;background:rgba(0,0,0,0.4);}
+.sf-chip.active{border-color:var(--gold);color:var(--gold);background:rgba(200,168,74,0.1);}
+#grain-control{display:flex;align-items:center;gap:10px;padding:2px 18px 10px;flex-shrink:0;}
+#grain-control label{font-size:8.5px;color:var(--dim);letter-spacing:1px;flex-shrink:0;text-transform:uppercase;}
+#grain-slider{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--gold-dim);border-radius:2px;outline:none;}
+#grain-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;}
+#grain-val{font-size:9.5px;color:var(--gold);width:24px;text-align:right;}
+
+/* ====== SETTINGS PANEL ====== */
+#settings-panel{position:absolute;top:0;right:0;bottom:0;width:260px;background:rgba(10,6,3,0.97);border-left:1px solid var(--gold-dim);z-index:25;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+#settings-panel.open{transform:translateX(0);}
+#settings-panel-header{padding:calc(var(--safe-top) + 8px) 18px 14px;border-bottom:1px solid var(--gold-dim);}
+#settings-panel-header h2{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);letter-spacing:2px;}
+.settings-body{flex:1;overflow-y:auto;padding:14px 18px;}
+.setting-group{margin-bottom:18px;}
+.setting-group h3{font-size:8px;color:var(--dim);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--gold-dim);}
+.setting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.setting-label{font-size:11px;color:var(--cream-dim);letter-spacing:.5px;}
+/* Toggle switch */
+.toggle-wrap{position:relative;width:38px;height:20px;cursor:pointer;}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:var(--dim2);border-radius:20px;transition:background .2s;}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:transform .2s,background .2s;}
+.toggle-wrap input:checked + .toggle-track{background:rgba(200,168,74,0.3);}
+.toggle-wrap input:checked + .toggle-track + .toggle-thumb{transform:translateX(18px);background:var(--gold);}
+/* Option chips row */
+.option-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.opt-chip{font-size:9.5px;padding:4px 9px;border-radius:2px;border:1px solid var(--gold-dim);color:var(--dim);cursor:pointer;transition:all .15s;letter-spacing:.5px;background:transparent;}
+.opt-chip.active{border-color:var(--gold);color:var(--gold);background:rgba(200,168,74,0.1);}
+
+/* ====== CAMERA ROLL ====== */
+#screen-roll{position:absolute;inset:0;background:var(--bg);z-index:30;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .38s cubic-bezier(.25,.46,.45,.94);}
+#screen-roll.open{transform:translateX(0);}
+.screen-header{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top) + 4px) 18px 10px;background:rgba(10,6,3,0.96);border-bottom:1px solid var(--gold-dim);flex-shrink:0;}
+.screen-header h1{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);letter-spacing:3px;font-weight:400;}
+.back-btn{font-size:12px;color:var(--gold);background:none;border:none;cursor:pointer;font-family:'Courier Prime',monospace;letter-spacing:.5px;padding:6px 0;transition:opacity .2s;}
+.back-btn:active{opacity:.6;}
+#roll-header-right{display:flex;gap:8px;align-items:center;}
+#roll-photo-count{font-size:9px;color:var(--dim);letter-spacing:1px;}
+#roll-grid{flex:1;overflow-y:auto;padding:1px;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5px;align-content:start;-webkit-overflow-scrolling:touch;}
+.roll-item{aspect-ratio:1;cursor:pointer;position:relative;background:#1a1208;overflow:hidden;}
+.roll-item img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .2s;}
+.roll-item-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;}
+.roll-item-filter{position:absolute;bottom:4px;left:4px;font-size:7.5px;color:rgba(237,224,196,0.75);background:rgba(0,0,0,0.55);padding:1.5px 4px;border-radius:1.5px;letter-spacing:.5px;}
+.roll-item-del{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.7);border:1px solid rgba(176,48,32,0.5);color:var(--red);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.roll-item:hover .roll-item-del,.roll-item:focus .roll-item-del{opacity:1;}
+#roll-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--dim);}
+#roll-empty .big-icon{font-size:50px;opacity:.4;}
+#roll-empty p{font-size:11px;letter-spacing:1px;}
+
+/* ====== PHOTO VIEWER ====== */
+#screen-viewer{position:absolute;inset:0;background:#000;z-index:35;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);}
+#screen-viewer.open{transform:translateY(0);}
+#viewer-img-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+#viewer-img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+#viewer-info{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);}
+#viewer-filter-name{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--cream-dim);}
+#viewer-settings{font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:3px;}
+#viewer-actions{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px calc(var(--safe-bottom) + 12px);background:rgba(10,6,3,0.97);border-top:1px solid var(--gold-dim);}
+.vact-btn{font-size:11px;color:var(--cream-dim);background:rgba(255,255,255,0.05);border:1px solid var(--gold-dim);padding:10px 18px;border-radius:3px;cursor:pointer;font-family:'Courier Prime',monospace;letter-spacing:1px;transition:background .2s,border-color .2s;}
+.vact-btn:active{background:rgba(200,168,74,0.12);border-color:var(--gold);}
+.vact-btn.danger{color:var(--red);border-color:rgba(176,48,32,0.35);}
+.vact-btn.danger:active{background:rgba(176,48,32,0.15);}
+.vact-btn.primary{color:var(--gold);border-color:rgba(200,168,74,0.5);background:rgba(200,168,74,0.08);}
+.vact-btn.primary:active{background:rgba(200,168,74,0.2);}
+
+/* ====== PHOTO EDITOR ====== */
+#screen-editor{position:absolute;inset:0;background:var(--bg);z-index:40;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .38s cubic-bezier(.25,.46,.45,.94);}
+#screen-editor.open{transform:translateX(0);}
+#editor-img-wrap{flex:1;position:relative;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center;min-height:0;}
+#editor-canvas{max-width:100%;max-height:100%;display:block;}
+#editor-controls{flex-shrink:0;padding:8px 0;background:rgba(10,6,3,0.98);border-top:1px solid var(--gold-dim);}
+.edit-sliders{display:flex;flex-direction:column;gap:7px;padding:5px 18px 8px;max-height:200px;overflow-y:auto;}
+.edit-row{display:flex;align-items:center;gap:8px;}
+.edit-row label{font-size:9.5px;color:var(--dim);letter-spacing:.5px;width:72px;flex-shrink:0;}
+.edit-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--gold-dim);border-radius:2px;outline:none;}
+.edit-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;}
+.edit-val{font-size:9.5px;color:var(--gold);width:30px;text-align:right;}
+#editor-actions{display:flex;gap:8px;padding:7px 18px calc(var(--safe-bottom) + 8px);}
+.eact-btn{flex:1;padding:10px 0;border-radius:3px;font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:background .15s;text-align:center;}
+#btn-discard{background:transparent;border:1px solid var(--gold-dim);color:var(--dim);}
+#btn-save-photo{background:rgba(200,168,74,0.1);border:1px solid var(--gold);color:var(--gold);}
+#btn-save-photo:active{background:rgba(200,168,74,0.25);}
+
+/* ====== FILTER CREATOR ====== */
+#screen-creator{position:absolute;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .38s cubic-bezier(.25,.46,.45,.94);}
+#screen-creator.open{transform:translateY(0);}
+#creator-preview-wrap{flex-shrink:0;height:160px;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#creator-preview-canvas{height:160px;width:100%;object-fit:cover;display:block;}
+#creator-filter-name-wrap{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);}
+#creator-name-input{background:rgba(0,0,0,0.65);border:1px solid rgba(200,168,74,0.4);color:var(--cream);font-family:'Playfair Display',serif;font-style:italic;font-size:14px;padding:4px 10px;border-radius:3px;text-align:center;outline:none;letter-spacing:1px;}
+#creator-sliders{flex:1;overflow-y:auto;padding:10px 18px 4px;-webkit-overflow-scrolling:touch;}
+.creator-section{margin-bottom:12px;}
+.creator-section h3{font-size:8.5px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(200,168,74,0.12);}
+.cslider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cslider-row label{font-size:9.5px;color:var(--dim);letter-spacing:.5px;width:70px;flex-shrink:0;}
+.cslider-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;}
+.cslider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;}
+.slider-r{background:linear-gradient(to right,#200,#f00);}
+.slider-g{background:linear-gradient(to right,#020,#0f0);}
+.slider-b{background:linear-gradient(to right,#002,#00f);}
+.slider-cy{background:linear-gradient(to right,#200,#0ff);}
+.slider-mg{background:linear-gradient(to right,#020,#f0f);}
+.slider-yw{background:linear-gradient(to right,#002,#ff0);}
+.slider-hue{background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
+.slider-sat{background:linear-gradient(to right,#888,#c8a84a);}
+.slider-bri{background:linear-gradient(to right,#000,#fff);}
+.slider-con{background:linear-gradient(to right,rgba(128,128,128,.5),rgba(0,0,0,1));}
+.slider-vig{background:linear-gradient(to right,transparent,#000);}
+.slider-grn{background:linear-gradient(to right,#1a1208,#e8d8b8);}
+.slider-tmp{background:linear-gradient(to right,#0060b0,#fff,#c86010);}
+.slider-tnt{background:linear-gradient(to right,#003830,#fff,#500040);}
+.slider-fde{background:linear-gradient(to right,#000,#7a6a5040);}
+.cslider-val{font-size:9.5px;color:var(--gold);width:34px;text-align:right;flex-shrink:0;}
+#creator-footer{flex-shrink:0;display:flex;gap:8px;padding:8px 18px calc(var(--safe-bottom) + 10px);border-top:1px solid var(--gold-dim);background:rgba(10,6,3,0.98);}
+.cf-btn{flex:1;padding:11px 0;border-radius:3px;font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;text-align:center;}
+#btn-cancel-creator{background:transparent;border:1px solid var(--gold-dim);color:var(--dim);}
+#btn-save-creator{background:rgba(200,168,74,0.1);border:1px solid var(--gold);color:var(--gold);}
+#btn-save-creator:active{background:rgba(200,168,74,0.25);}
+</style>
 </head>
 <body>
+<div id="app">
 
-    <div class="app-container">
-        
-        <!-- TOP HUD -->
-        <div class="absolute top-0 left-0 w-full z-40 px-6 pt-[var(--safe-top)] flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-            <div class="flex gap-4 items-center">
-                <button id="toggle-flash" class="w-10 h-10 flex items-center justify-center text-white"><i class="fa-solid fa-bolt-slash"></i></button>
-                <button id="toggle-grid" class="w-10 h-10 flex items-center justify-center opacity-50 text-white"><i class="fa-solid fa-table-cells"></i></button>
-            </div>
-            
-            <div id="long-exp-tag" class="hidden bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded">LONG EXP</div>
-            
-            <button id="switch-cam" class="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md text-white">
-                <i class="fa-solid fa-camera-rotate"></i>
-            </button>
-        </div>
-
-        <!-- FIXED ASPECT VIEWPORT -->
-        <div class="viewfinder-container">
-            <video id="viewfinder" autoplay playsinline muted></video>
-            
-            <!-- Overlays -->
-            <div id="grid-system" class="grid-overlay hidden">
-                <div class="grid-line-v grid-line-h"></div><div class="grid-line-v grid-line-h"></div><div class="grid-line-h"></div>
-                <div class="grid-line-v grid-line-h"></div><div class="grid-line-v grid-line-h"></div><div class="grid-line-h"></div>
-                <div class="grid-line-v"></div><div class="grid-line-v"></div><div></div>
-            </div>
-            
-            <div id="horizon" class="hidden"></div>
-            
-            <!-- Zoom Rocker -->
-            <input type="range" id="zoom-rocker" min="1" max="5" step="0.1" value="1" class="zoom-slider">
-            
-            <!-- Screen Flash -->
-            <div id="flash-bg" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50 transition-opacity"></div>
-        </div>
-
-        <!-- BOTTOM CONTROLS -->
-        <div class="controls-container">
-            <!-- Mode Tabs -->
-            <div class="flex justify-around text-[10px] font-bold tracking-widest text-zinc-500 mb-8 uppercase">
-                <button onclick="setMode('photo')" id="mode-photo" class="active-tab px-2 pb-1">Photo</button>
-                <button onclick="setMode('le')" id="mode-le" class="px-2 pb-1">Long Exp</button>
-                <button onclick="togglePanel('manual')" class="px-2 pb-1">Manual</button>
-                <button onclick="togglePanel('lab')" class="px-2 pb-1">Filter Lab</button>
-            </div>
-
-            <!-- Shutter Row -->
-            <div class="flex justify-between items-center px-2">
-                <button id="gallery-btn" class="w-12 h-12 bg-zinc-800 rounded-full overflow-hidden border border-white/20">
-                    <img id="last-img" class="w-full h-full object-cover hidden">
-                </button>
-
-                <button id="shutter-btn" class="relative group">
-                    <div class="w-20 h-20 rounded-full border-[6px] border-white flex items-center justify-center">
-                        <div class="shutter-inner w-14 h-14 bg-white rounded-full"></div>
-                    </div>
-                </button>
-
-                <button onclick="togglePanel('filters')" class="w-12 h-12 flex items-center justify-center text-xl text-white">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </button>
-            </div>
-        </div>
+  <!-- Permission Screen -->
+  <div id="perm-screen">
+    <div class="perm-logo-wrap">
+      <div class="perm-logo">LOMINO</div>
+      <div class="perm-tagline">Analogue Film Camera</div>
+      <div class="perm-divider"></div>
     </div>
-
-    <!-- FLOATING MANUAL PANEL -->
-    <div id="panel-manual" class="fixed bottom-0 left-50 translate-x-[-50%] w-full max-w-[500px] bg-zinc-900/95 backdrop-blur-xl p-8 panel-slide off-screen z-[60] rounded-t-3xl border-t border-white/10">
-        <div class="flex justify-between items-center mb-8">
-            <h3 class="text-xs font-black uppercase tracking-widest text-zinc-500">Settings</h3>
-            <button onclick="togglePanel('manual')" class="text-white"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="space-y-8">
-            <div class="space-y-2">
-                <div class="flex justify-between text-[10px]"><span>ISO Sensitivity</span><span id="v-iso" class="text-white">400</span></div>
-                <input type="range" id="s-iso" min="100" max="3200" value="400" class="w-full accent-yellow-400 h-1 bg-zinc-800 rounded-lg appearance-none">
-            </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-[10px]"><span>Shutter Speed</span><span id="v-ss" class="text-white">1/125</span></div>
-                <input type="range" id="s-ss" min="1" max="1000" value="125" class="w-full accent-yellow-400 h-1 bg-zinc-800 rounded-lg appearance-none">
-            </div>
-            <div class="flex items-center justify-between pt-4 border-t border-white/5">
-                <span class="text-[10px] uppercase">Leveling Guide</span>
-                <input type="checkbox" id="level-toggle" class="w-4 h-4">
-            </div>
-        </div>
+    <h2>Frame the Moment</h2>
+    <p>Capture life through the lens of classic analogue film. Every shot is a frame of your story.</p>
+    <button id="btn-allow-cam" type="button">OPEN LENS</button>
+    <div class="perm-film-strip">
+      <div class="pfs"></div><div class="pfs"></div><div class="pfs"></div>
+      <div class="pfs"></div><div class="pfs"></div><div class="pfs"></div>
+      <div class="pfs"></div><div class="pfs"></div><div class="pfs"></div>
     </div>
+  </div>
 
-    <!-- GALLERY VIEW -->
-    <div id="gallery-layer" class="fixed inset-0 bg-black z-[100] panel-slide off-screen flex flex-col">
-        <div class="pt-[var(--safe-top)] px-6 py-6 flex justify-between items-center border-b border-white/5">
-            <h2 class="text-sm font-black tracking-tighter italic">GALLERY_INDEX</h2>
-            <button onclick="closeGallery()" class="text-xs uppercase font-bold text-yellow-400">Back</button>
-        </div>
-        <div id="gallery-grid" class="flex-grow overflow-y-auto grid grid-cols-3 gap-0.5 p-0.5"></div>
+  <!-- Camera View -->
+  <div id="viewfinder-wrap">
+    <video id="video-el" playsinline autoplay muted></video>
+    <canvas id="viewfinder"></canvas>
+    <canvas id="grain-canvas"></canvas>
+    <div id="vignette-overlay"></div>
+    <div id="screen-filter-el"></div>
+    <div id="mask-top" style="height:0"></div>
+    <div id="mask-bot" style="height:0"></div>
+    <div id="grid-overlay">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="33.3" y1="0" x2="33.3" y2="100" stroke="rgba(255,255,255,0.18)" stroke-width=".2"/>
+        <line x1="66.6" y1="0" x2="66.6" y2="100" stroke="rgba(255,255,255,0.18)" stroke-width=".2"/>
+        <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="rgba(255,255,255,0.18)" stroke-width=".2"/>
+        <line x1="0" y1="66.6" x2="100" y2="66.6" stroke="rgba(255,255,255,0.18)" stroke-width=".2"/>
+      </svg>
     </div>
+    <div id="focus-ring"></div>
+    <div id="timer-overlay"><span id="timer-num">3</span></div>
+    <div id="flash-overlay"></div>
+    <div id="datestamp-overlay" class="show"></div>
+  </div>
+
+  <!-- HUD Top -->
+  <div id="hud-top">
+    <span id="brand-name">LOMINO</span>
+    <div id="hud-mid">
+      <span class="sbadge" id="iso-badge">ISO <span id="iso-val">400</span></span>
+      <span class="sbadge" id="ss-badge">⏱ <span id="ss-val">1/60</span></span>
+      <span class="sbadge" id="ap-badge">◎ <span id="ap-val">f/2.8</span></span>
+    </div>
+    <div id="hud-right">
+      <button class="hud-icon-btn" id="btn-flip" type="button" title="Flip Camera">⇄</button>
+      <button class="hud-icon-btn" id="btn-settings-open" type="button" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <!-- Dials -->
+  <div id="dials-panel">
+    <div class="dial">
+      <label>ISO</label>
+      <div class="dial-val" id="iso-dial">400</div>
+      <div class="dial-btns">
+        <button class="dbtn" type="button" data-dial="iso" data-dir="-1">▼</button>
+        <button class="dbtn" type="button" data-dial="iso" data-dir="1">▲</button>
+      </div>
+    </div>
+    <div class="dial">
+      <label>Speed</label>
+      <div class="dial-val" id="ss-dial">1/60</div>
+      <div class="dial-btns">
+        <button class="dbtn" type="button" data-dial="ss" data-dir="-1">▼</button>
+        <button class="dbtn" type="button" data-dial="ss" data-dir="1">▲</button>
+      </div>
+    </div>
+    <div class="dial">
+      <label>F/Stop</label>
+      <div class="dial-val" id="ap-dial">2.8</div>
+      <div class="dial-btns">
+        <button class="dbtn" type="button" data-dial="ap" data-dir="-1">▼</button>
+        <button class="dbtn" type="button" data-dial="ap" data-dir="1">▲</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status overlays -->
+  <div id="zoom-badge">1.0×</div>
+  <div id="ael-badge">AE-L</div>
+  <div id="filter-name-display">No Filter</div>
+  <div id="photo-counter">0 frames</div>
+  <div id="ev-meter">
+    <div id="ev-bar"><div id="ev-fill"></div></div>
+    <span id="ev-label">EV</span>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div id="controls-bottom">
+    <div class="ctrl-group">
+      <button id="btn-roll" type="button">
+        <img id="roll-thumb" src="" alt="">
+        <span id="roll-icon">🎞</span>
+        <span id="roll-count">ROLL</span>
+      </button>
+    </div>
+    <div class="ctrl-group" style="flex-direction:row;gap:14px;align-items:center;">
+      <button class="ctrl-icon-btn" id="btn-timer" type="button">
+        <span>⏱</span>
+        <small id="timer-label">OFF</small>
+      </button>
+      <button id="btn-shutter" type="button"></button>
+      <button class="ctrl-icon-btn" id="btn-filter-toggle" type="button">
+        <span>⬡</span>
+        <small>LENS</small>
+      </button>
+    </div>
+    <div class="ctrl-group" style="visibility:hidden;width:50px;"></div>
+  </div>
+
+  <!-- Snap Preview -->
+  <img id="snap-preview" class="snap-preview" src="" alt="">
+
+  <!-- Filter Sheet -->
+  <div id="filter-sheet">
+    <div style="padding:8px 0 0;flex-shrink:0;"><div class="sheet-drag"></div></div>
+    <div id="filter-sheet-header">
+      <h2>FILM STOCKS</h2>
+      <div id="sheet-btns">
+        <button class="sh-btn" id="btn-open-creator" type="button">+ CREATE</button>
+        <button class="sh-btn" id="btn-close-sheet" type="button">✕</button>
+      </div>
+    </div>
+    <div id="filter-cats">
+      <span class="fcat active" data-cat="all">All</span>
+      <span class="fcat" data-cat="favs">★ Favs</span>
+      <span class="fcat" data-cat="bw">B&W</span>
+      <span class="fcat" data-cat="color">Color</span>
+      <span class="fcat" data-cat="vintage">Vintage</span>
+      <span class="fcat" data-cat="custom">Custom</span>
+    </div>
+    <div class="filter-scroll" id="main-filter-scroll"></div>
+    <div class="fsec-title">SCREEN OVERLAY</div>
+    <div id="screen-filter-panel">
+      <span class="sf-chip active" data-sf="none">None</span>
+      <span class="sf-chip" data-sf="scanlines">Scanlines</span>
+      <span class="sf-chip" data-sf="lightleak">Light Leak</span>
+      <span class="sf-chip" data-sf="dust">Dust</span>
+      <span class="sf-chip" data-sf="vhs">VHS</span>
+    </div>
+    <div id="grain-control">
+      <label>Grain</label>
+      <input type="range" id="grain-slider" min="0" max="100" value="0">
+      <span id="grain-val">0</span>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="settings-panel">
+    <div id="settings-panel-header">
+      <h2>SETTINGS</h2>
+    </div>
+    <div class="settings-body">
+      <div class="setting-group">
+        <h3>Capture</h3>
+        <div class="setting-row">
+          <span class="setting-label">Date Stamp</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="tog-datestamp" checked>
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Grid Overlay</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="tog-grid">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Flash Effect</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="tog-flash" checked>
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Mirror Front Cam</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="tog-mirror">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <h3>Aspect Ratio</h3>
+        <div class="setting-row">
+          <div class="option-chips" id="ratio-chips">
+            <span class="opt-chip active" data-ratio="full">Full</span>
+            <span class="opt-chip" data-ratio="16:9">16:9</span>
+            <span class="opt-chip" data-ratio="4:3">4:3</span>
+            <span class="opt-chip" data-ratio="1:1">1:1</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <h3>Resolution</h3>
+        <div class="setting-row">
+          <div class="option-chips" id="res-chips">
+            <span class="opt-chip active" data-res="high">High</span>
+            <span class="opt-chip" data-res="medium">Mid</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <h3>About</h3>
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+          <span style="font-size:10px;color:var(--dim);letter-spacing:.5px;line-height:1.7;">LOMINO — Analogue Film Camera<br>Swipe viewfinder to cycle filters.<br>Long-press shutter to lock exposure.</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 18px calc(var(--safe-bottom)+14px);">
+      <button class="sh-btn" id="btn-settings-close" type="button" style="width:100%;padding:10px;text-align:center;letter-spacing:2px;">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- Camera Roll Screen -->
+  <div id="screen-roll">
+    <div class="screen-header">
+      <button class="back-btn" id="btn-close-roll" type="button">← CAMERA</button>
+      <h1>ROLL</h1>
+      <div id="roll-header-right">
+        <span id="roll-photo-count">0 frames</span>
+      </div>
+    </div>
+    <div id="roll-grid"></div>
+    <div id="roll-empty" style="display:none;">
+      <div class="big-icon">🎞</div>
+      <p>NO PHOTOS YET</p>
+      <p style="font-size:10px;margin-top:4px;letter-spacing:1px;">Take your first shot</p>
+    </div>
+  </div>
+
+  <!-- Photo Viewer -->
+  <div id="screen-viewer">
+    <div class="screen-header">
+      <button class="back-btn" id="btn-close-viewer" type="button">← ROLL</button>
+      <h1>FRAME</h1>
+      <span style="width:60px"></span>
+    </div>
+    <div id="viewer-img-wrap">
+      <img id="viewer-img" src="" alt="">
+      <div id="viewer-info">
+        <div id="viewer-filter-name"></div>
+        <div id="viewer-settings"></div>
+      </div>
+    </div>
+    <div id="viewer-actions">
+      <button class="vact-btn danger" id="btn-delete-photo" type="button">DELETE</button>
+      <button class="vact-btn" id="btn-edit-photo" type="button">EDIT</button>
+      <button class="vact-btn primary" id="btn-download-photo" type="button">SAVE</button>
+    </div>
+  </div>
+
+  <!-- Photo Editor Screen -->
+  <div id="screen-editor">
+    <div class="screen-header">
+      <button class="back-btn" id="btn-close-editor" type="button">← BACK</button>
+      <h1>DARKROOM</h1>
+      <span style="width:60px"></span>
+    </div>
+    <div id="editor-img-wrap">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+    <div id="editor-controls">
+      <div class="edit-sliders" id="edit-sliders">
+        <div class="edit-row"><label>Exposure</label><input type="range" id="ed-exposure" min="-100" max="100" value="0"><span class="edit-val" id="ev-exposure">0</span></div>
+        <div class="edit-row"><label>Contrast</label><input type="range" id="ed-contrast" min="-100" max="100" value="0"><span class="edit-val" id="ev-contrast">0</span></div>
+        <div class="edit-row"><label>Saturation</label><input type="range" id="ed-saturation" min="-100" max="100" value="0"><span class="edit-val" id="ev-saturation">0</span></div>
+        <div class="edit-row"><label>Warmth</label><input type="range" id="ed-warmth" min="-100" max="100" value="0"><span class="edit-val" id="ev-warmth">0</span></div>
+        <div class="edit-row"><label>Highlights</label><input type="range" id="ed-highlights" min="-100" max="100" value="0"><span class="edit-val" id="ev-highlights">0</span></div>
+        <div class="edit-row"><label>Shadows</label><input type="range" id="ed-shadows" min="-100" max="100" value="0"><span class="edit-val" id="ev-shadows">0</span></div>
+        <div class="edit-row"><label>Grain</label><input type="range" id="ed-grain" min="0" max="100" value="0"><span class="edit-val" id="ev-grain">0</span></div>
+        <div class="edit-row"><label>Vignette</label><input type="range" id="ed-vignette" min="0" max="100" value="0"><span class="edit-val" id="ev-vignette">0</span></div>
+      </div>
+      <div id="editor-actions">
+        <button class="eact-btn" id="btn-discard" type="button">DISCARD</button>
+        <button class="eact-btn" id="btn-save-photo" type="button">SAVE TO DEVICE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Creator Screen -->
+  <div id="screen-creator">
+    <div class="screen-header">
+      <button class="back-btn" id="btn-cancel-creator-top" type="button">✕ CANCEL</button>
+      <h1>DEVELOP</h1>
+      <span style="width:60px"></span>
+    </div>
+    <div id="creator-preview-wrap">
+      <canvas id="creator-preview-canvas"></canvas>
+      <div id="creator-filter-name-wrap">
+        <input type="text" id="creator-name-input" value="My Stock" maxlength="20">
+      </div>
+    </div>
+    <div id="creator-sliders">
+      <div class="creator-section">
+        <h3>Color Channels</h3>
+        <div class="cslider-row"><label>Red</label><input type="range" class="slider-r" id="cs-r" min="0" max="200" value="100"><span class="cslider-val" id="cv-r">100</span></div>
+        <div class="cslider-row"><label>Green</label><input type="range" class="slider-g" id="cs-g" min="0" max="200" value="100"><span class="cslider-val" id="cv-g">100</span></div>
+        <div class="cslider-row"><label>Blue</label><input type="range" class="slider-b" id="cs-b" min="0" max="200" value="100"><span class="cslider-val" id="cv-b">100</span></div>
+        <div class="cslider-row"><label>Cyan</label><input type="range" class="slider-cy" id="cs-cy" min="0" max="100" value="0"><span class="cslider-val" id="cv-cy">0</span></div>
+        <div class="cslider-row"><label>Magenta</label><input type="range" class="slider-mg" id="cs-mg" min="0" max="100" value="0"><span class="cslider-val" id="cv-mg">0</span></div>
+        <div class="cslider-row"><label>Yellow</label><input type="range" class="slider-yw" id="cs-yw" min="0" max="100" value="0"><span class="cslider-val" id="cv-yw">0</span></div>
+      </div>
+      <div class="creator-section">
+        <h3>Tone</h3>
+        <div class="cslider-row"><label>Temperature</label><input type="range" class="slider-tmp" id="cs-tmp" min="-100" max="100" value="0"><span class="cslider-val" id="cv-tmp">0</span></div>
+        <div class="cslider-row"><label>Tint</label><input type="range" class="slider-tnt" id="cs-tnt" min="-100" max="100" value="0"><span class="cslider-val" id="cv-tnt">0</span></div>
+        <div class="cslider-row"><label>Hue Shift</label><input type="range" class="slider-hue" id="cs-hue" min="-180" max="180" value="0"><span class="cslider-val" id="cv-hue">0°</span></div>
+        <div class="cslider-row"><label>Saturation</label><input type="range" class="slider-sat" id="cs-sat" min="0" max="200" value="100"><span class="cslider-val" id="cv-sat">100</span></div>
+        <div class="cslider-row"><label>Brightness</label><input type="range" class="slider-bri" id="cs-bri" min="0" max="200" value="100"><span class="cslider-val" id="cv-bri">100</span></div>
+        <div class="cslider-row"><label>Contrast</label><input type="range" class="slider-con" id="cs-con" min="0" max="200" value="100"><span class="cslider-val" id="cv-con">100</span></div>
+      </div>
+      <div class="creator-section">
+        <h3>Film Look</h3>
+        <div class="cslider-row"><label>Fade</label><input type="range" class="slider-fde" id="cs-fde" min="0" max="60" value="0"><span class="cslider-val" id="cv-fde">0</span></div>
+        <div class="cslider-row"><label>Vignette</label><input type="range" class="slider-vig" id="cs-vig" min="0" max="100" value="20"><span class="cslider-val" id="cv-vig">20</span></div>
+        <div class="cslider-row"><label>Grain</label><input type="range" class="slider-grn" id="cs-grn" min="0" max="100" value="5"><span class="cslider-val" id="cv-grn">5</span></div>
+      </div>
+    </div>
+    <div id="creator-footer">
+      <button class="cf-btn" id="btn-cancel-creator" type="button">CANCEL</button>
+      <button class="cf-btn" id="btn-save-creator" type="button">SAVE STOCK</button>
+    </div>
+  </div>
+
+</div>
 
 <script>
-    let db;
-    let stream;
-    let mode = 'photo';
-    let currentFilter = 'none';
-    let currentFacing = 'environment';
-    let zoomLevel = 1;
+// ============================================================
+// BUILT-IN FILTERS (organized by category)
+// ============================================================
+const BUILT_IN_FILTERS = [
+  {id:'none',       name:'Clean',          cat:'color',   css:'',                                                                 vignette:0,    grain:0,    custom:false},
+  // B&W
+  {id:'hp5',        name:'Ilford HP5',     cat:'bw',      css:'grayscale(1) contrast(1.28) brightness(0.94)',                    vignette:0.28, grain:0.16, custom:false},
+  {id:'silver',     name:'Silver Gelatin', cat:'bw',      css:'grayscale(1) contrast(1.55) brightness(0.88)',                    vignette:0.38, grain:0.19, custom:false},
+  {id:'daguerre',   name:'Daguerreotype',  cat:'bw',      css:'grayscale(1) sepia(0.32) contrast(1.42) brightness(0.83)',        vignette:0.42, grain:0.16, custom:false},
+  {id:'tintype',    name:'Tin Type',       cat:'bw',      css:'grayscale(0.82) sepia(0.5) contrast(1.52) brightness(0.78)',      vignette:0.48, grain:0.21, custom:false},
+  {id:'bypass',     name:'Bleach Bypass',  cat:'bw',      css:'saturate(0.38) contrast(1.82) brightness(0.94)',                  vignette:0.26, grain:0.08, custom:false},
+  {id:'pinhole',    name:'Pinhole',        cat:'bw',      css:'grayscale(0.35) contrast(1.22) brightness(0.82)',                 vignette:0.72, grain:0.22, custom:false},
+  {id:'tritone',    name:'Tritone',        cat:'bw',      css:'grayscale(0.72) sepia(0.52) hue-rotate(238deg) saturate(1.52)',   vignette:0.22, grain:0.08, custom:false},
+  // Color
+  {id:'kodachrome', name:'Kodachrome',     cat:'color',   css:'contrast(1.28) saturate(1.55) sepia(0.18)',                      vignette:0.22, grain:0.07, custom:false},
+  {id:'velvia',     name:'Fuji Velvia',    cat:'color',   css:'contrast(1.42) saturate(1.95) brightness(1.04)',                  vignette:0.15, grain:0.05, custom:false},
+  {id:'portra',     name:'Kodak Portra',   cat:'color',   css:'contrast(0.94) saturate(1.18) sepia(0.14) brightness(1.06)',      vignette:0.1,  grain:0.1,  custom:false},
+  {id:'cross',      name:'Cross Process',  cat:'color',   css:'contrast(1.5) saturate(1.8) hue-rotate(32deg)',                  vignette:0.2,  grain:0.05, custom:false},
+  {id:'lomo',       name:'Lomo LC-A',      cat:'color',   css:'contrast(1.5) saturate(1.42) brightness(0.88)',                  vignette:0.55, grain:0.12, custom:false},
+  {id:'cyanotype',  name:'Cyanotype',      cat:'color',   css:'grayscale(0.6) hue-rotate(185deg) saturate(0.75) brightness(0.92)',vignette:0.22,grain:0.1, custom:false},
+  {id:'infrared',   name:'Infrared',       cat:'color',   css:'hue-rotate(122deg) saturate(1.55) contrast(1.32)',               vignette:0.22, grain:0.1,  custom:false},
+  {id:'redscale',   name:'Redscale',       cat:'color',   css:'hue-rotate(-38deg) saturate(2.1) contrast(1.32)',               vignette:0.28, grain:0.11, custom:false},
+  {id:'80s',        name:'\'80s Neon',     cat:'color',   css:'saturate(2.4) contrast(1.38) hue-rotate(28deg) brightness(1.1)', vignette:0.1,  grain:0.04, custom:false},
+  // Vintage
+  {id:'sepia',      name:'Sepia Classic',  cat:'vintage', css:'sepia(1) contrast(1.12)',                                        vignette:0.32, grain:0.13, custom:false},
+  {id:'faded',      name:'Faded Film',     cat:'vintage', css:'contrast(0.78) saturate(0.65) brightness(1.18)',                vignette:0.14, grain:0.1,  custom:false},
+  {id:'golden',     name:'Golden Hour',    cat:'vintage', css:'contrast(1.12) saturate(1.28) sepia(0.28) brightness(1.08)',    vignette:0.15, grain:0.04, custom:false},
+  {id:'70s',        name:'\'70s Kodak',    cat:'vintage', css:'sepia(0.4) saturate(1.32) contrast(1.08) hue-rotate(-18deg)',   vignette:0.22, grain:0.13, custom:false},
+  {id:'instant',    name:'Instant Film',   cat:'vintage', css:'contrast(0.84) saturate(0.9) brightness(1.12) sepia(0.16)',     vignette:0.32, grain:0.09, custom:false},
+  {id:'polaroid',   name:'Polaroid',       cat:'vintage', css:'contrast(0.9) saturate(1.12) brightness(1.18) sepia(0.1)',      vignette:0.1,  grain:0.06, custom:false},
+  {id:'expired',    name:'Expired Film',   cat:'vintage', css:'hue-rotate(38deg) saturate(0.78) contrast(0.88) brightness(1.06) sepia(0.22)',vignette:0.22,grain:0.21,custom:false},
+  {id:'lomolca',    name:'Lomo LomoChrome',cat:'vintage', css:'hue-rotate(-22deg) saturate(1.6) contrast(1.3) brightness(0.95)',vignette:0.38,grain:0.14, custom:false},
+  {id:'orwo',       name:'ORWO NC',        cat:'vintage', css:'sepia(0.28) hue-rotate(-8deg) saturate(1.14) contrast(1.1) brightness(0.92)',vignette:0.3,grain:0.18,custom:false},
+];
 
-    // 1. IndexedDB Setup
-    const initStorage = () => {
-        const req = indexedDB.open('ProCamMax', 1);
-        req.onupgradeneeded = (e) => e.target.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
-        req.onsuccess = (e) => { db = e.target.result; loadLastThumb(); };
-    };
+const FILTER_CATS = {
+  all: f => true,
+  favs: f => favorites.has(f.id),
+  bw: f => f.cat === 'bw',
+  color: f => f.cat === 'color' || f.cat === undefined,
+  vintage: f => f.cat === 'vintage',
+  custom: f => f.custom === true,
+};
 
-    // 2. Camera Engine
-    const startCam = async () => {
-        if (stream) stream.getTracks().forEach(t => t.stop());
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentFacing, width: { ideal: 4096 }, height: { ideal: 2160 } }
-            });
-            const video = document.getElementById('viewfinder');
-            video.srcObject = stream;
-            
-            // Mirror front cam
-            video.style.transform = currentFacing === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-            
-            // Handle Zoom Support
-            const [track] = stream.getVideoTracks();
-            const caps = track.getCapabilities();
-            const rocker = document.getElementById('zoom-rocker');
-            if (caps && caps.zoom) {
-                rocker.min = caps.zoom.min;
-                rocker.max = caps.zoom.max;
-                rocker.step = caps.zoom.step;
-            }
-        } catch (e) { console.error(e); }
-    };
+// ============================================================
+// STATE
+// ============================================================
+let customFilters = JSON.parse(localStorage.getItem('lm_custom') || '[]');
+let favorites = new Set(JSON.parse(localStorage.getItem('lm_favs') || '[]'));
+let photos = JSON.parse(localStorage.getItem('lm_photos') || '[]');
+const ISO_VALS = [100,200,400,800,1600,3200];
+const SS_VALS = ['1/1000','1/500','1/250','1/125','1/60','1/30','1/15','1/8'];
+const AP_VALS = ['f/1.4','f/1.8','f/2.0','f/2.8','f/4.0','f/5.6','f/8.0'];
+let isoIdx = 2, ssIdx = 4, apIdx = 3;
+let activeFilterIdx = 0;
+let extraGrain = 0;
+let screenFilterMode = 'none';
+let filterSheetOpen = false;
+let settingsPanelOpen = false;
+let editingFilterId = null;
+let currentCat = 'all';
+let creatorSnapshot = null;
+let renderRunning = false;
+let facingMode = 'environment';
+let currentZoom = 1;
+let timerMode = 0; // 0=off, 3=3s, 10=10s
+let timerTimeout = null;
+let aeLocked = false;
+let aeLockedBrightness = null;
+let aspectRatio = 'full';
+let useHighRes = true;
+let dateStamp = true;
+let showGrid = false;
+let mirrorFront = false;
+let flashEnabled = true;
+let currentViewerPhoto = null;
+// Pre-baked grain frames
+const GRAIN_FRAME_COUNT = 8;
+let grainFrames = [];
+let grainFrameIdx = 0;
+let lastGrainTime = 0;
+let cachedGrainAmount = -1;
+let cachedGrainW = 0, cachedGrainH = 0;
+// Touch/pinch state
+let touchStartX = 0, touchStartY = 0;
+let pinchActive = false, pinchStartDist = 0, pinchStartZoom = 1;
+let focusHideTimeout = null;
+// Long press
+let shutterLongPressTimer = null;
 
-    // 3. UI Interactions
-    function togglePanel(id) {
-        const el = document.getElementById(`panel-${id}`);
-        if(el) el.classList.toggle('off-screen');
+function getAllFilters() { return [...BUILT_IN_FILTERS, ...customFilters]; }
+function getCurrentFilter() { return getAllFilters()[activeFilterIdx] || BUILT_IN_FILTERS[0]; }
+
+// ============================================================
+// CAMERA INIT
+// ============================================================
+const videoEl = document.getElementById('video-el');
+const viewfinder = document.getElementById('viewfinder');
+const grainCanvas = document.getElementById('grain-canvas');
+const vignetteEl = document.getElementById('vignette-overlay');
+const screenFilterEl = document.getElementById('screen-filter-el');
+const flashEl = document.getElementById('flash-overlay');
+const focusRing = document.getElementById('focus-ring');
+const vfCtx = viewfinder.getContext('2d', {willReadFrequently: false});
+const gCtx = grainCanvas.getContext('2d');
+
+function resizeCanvases() {
+  const w = window.innerWidth, h = window.innerHeight;
+  viewfinder.width = w; viewfinder.height = h;
+  grainCanvas.width = w; grainCanvas.height = h;
+  grainFrames = []; // Invalidate grain cache
+  updateAspectMasks();
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+
+async function initCamera() {
+  document.getElementById('perm-screen').classList.add('hide');
+  try {
+    if (videoEl.srcObject) {
+      videoEl.srcObject.getTracks().forEach(t => t.stop());
     }
-
-    function setMode(m) {
-        mode = m;
-        document.getElementById('mode-photo').classList.toggle('active-tab', m === 'photo');
-        document.getElementById('mode-le').classList.toggle('active-tab', m === 'le');
-        document.getElementById('long-exp-tag').classList.toggle('hidden', m !== 'le');
-    }
-
-    document.getElementById('switch-cam').onclick = () => {
-        currentFacing = currentFacing === 'user' ? 'environment' : 'user';
-        startCam();
-    };
-
-    document.getElementById('toggle-grid').onclick = function() {
-        const grid = document.getElementById('grid-system');
-        grid.classList.toggle('hidden');
-        this.classList.toggle('opacity-100');
-    };
-
-    document.getElementById('level-toggle').onchange = (e) => {
-        document.getElementById('horizon').classList.toggle('hidden', !e.target.checked);
-    };
-
-    document.getElementById('zoom-rocker').oninput = (e) => {
-        const [track] = stream.getVideoTracks();
-        if (track && track.getCapabilities && track.getCapabilities().zoom) {
-            track.applyConstraints({ advanced: [{ zoom: e.target.value }] });
-        }
-    };
-
-    // 4. Capture & Save
-    document.getElementById('shutter-btn').onclick = async () => {
-        const flash = document.getElementById('flash-bg');
-        flash.style.opacity = '1';
-        setTimeout(() => flash.style.opacity = '0', 100);
-
-        const video = document.getElementById('viewfinder');
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-
-        if(currentFacing === 'user') {
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-        }
-
-        if (mode === 'le') {
-            ctx.globalAlpha = 0.05;
-            for(let i=0; i<20; i++){
-                ctx.drawImage(video, 0, 0);
-                await new Promise(r => setTimeout(r, 50));
-            }
-        } else {
-            ctx.drawImage(video, 0, 0);
-        }
-
-        canvas.toBlob((blob) => {
-            const tx = db.transaction('photos', 'readwrite');
-            tx.objectStore('photos').add({
-                data: blob,
-                ts: Date.now(),
-                meta: { iso: document.getElementById('s-iso').value, ss: document.getElementById('s-ss').value }
-            });
-            loadLastThumb();
-        }, 'image/jpeg', 0.95);
-    };
-
-    // 5. Gallery Engine
-    const loadLastThumb = () => {
-        const tx = db.transaction('photos', 'readonly');
-        const req = tx.objectStore('photos').getAll();
-        req.onsuccess = () => {
-            const list = req.result;
-            if(list.length > 0) {
-                const last = list[list.length - 1];
-                const thumb = document.getElementById('last-img');
-                thumb.src = URL.createObjectURL(last.data);
-                thumb.classList.remove('hidden');
-            }
-        };
-    };
-
-    document.getElementById('gallery-btn').onclick = () => {
-        const grid = document.getElementById('gallery-grid');
-        grid.innerHTML = '';
-        const tx = db.transaction('photos', 'readonly');
-        tx.objectStore('photos').getAll().onsuccess = (e) => {
-            e.target.result.reverse().forEach(p => {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(p.data);
-                img.className = 'aspect-square object-cover w-full active:opacity-50 transition';
-                img.onclick = () => download(p);
-                grid.appendChild(img);
-            });
-        };
-        document.getElementById('gallery-layer').classList.remove('off-screen');
-    };
-
-    function closeGallery() { document.getElementById('gallery-layer').classList.add('off-screen'); }
-
-    function download(p) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(p.data);
-        a.download = `IMG_${p.ts}.heic`;
-        a.click();
-    }
-
-    // Init
-    window.onload = () => {
-        initStorage();
-        startCam();
-    };
-
-    // Horizon Level Logic
-    window.addEventListener('deviceorientation', (e) => {
-        const horizon = document.getElementById('horizon');
-        if (horizon) {
-            horizon.style.transform = `translate(-50%, -50%) rotate(${e.gamma}deg)`;
-            horizon.style.background = Math.abs(e.gamma) < 2 ? 'var(--accent)' : 'white';
-        }
+    const ideal = useHighRes ? { width: { ideal: 4096 }, height: { ideal: 2160 } }
+                              : { width: { ideal: 1920 }, height: { ideal: 1080 } };
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facingMode }, ...ideal },
+      audio: false
     });
+    videoEl.srcObject = stream;
+    videoEl.onloadedmetadata = () => {
+      videoEl.play();
+      // Mirror front camera
+      if (facingMode === 'user' && mirrorFront) {
+        videoEl.style.transform = 'scaleX(-1)';
+      } else {
+        videoEl.style.transform = '';
+      }
+      if (!renderRunning) startRenderLoop();
+      setTimeout(() => { document.getElementById('perm-screen').style.display = 'none'; }, 500);
+    };
+  } catch(e) {
+    alert('Camera access denied or unavailable. Please grant camera permission.');
+    document.getElementById('perm-screen').classList.remove('hide');
+  }
+}
+
+async function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  currentZoom = 1;
+  updateZoomBadge();
+  // Brief flip animation on viewfinder
+  viewfinder.style.transition = 'transform .2s ease-in';
+  viewfinder.style.transform = 'scaleX(0)';
+  await new Promise(r => setTimeout(r, 200));
+  await initCamera();
+  viewfinder.style.transition = 'transform .2s ease-out';
+  viewfinder.style.transform = 'scaleX(1)';
+  setTimeout(() => { viewfinder.style.transition = ''; viewfinder.style.transform = ''; }, 200);
+}
+
+// ============================================================
+// ASPECT RATIO
+// ============================================================
+function updateAspectMasks() {
+  const top = document.getElementById('mask-top');
+  const bot = document.getElementById('mask-bot');
+  const w = window.innerWidth, h = window.innerHeight;
+  let maskH = 0;
+  if (aspectRatio === '16:9') {
+    const targetH = w * (9/16);
+    maskH = Math.max(0, (h - targetH) / 2);
+  } else if (aspectRatio === '4:3') {
+    const targetH = w * (3/4);
+    maskH = Math.max(0, (h - targetH) / 2);
+  } else if (aspectRatio === '1:1') {
+    maskH = Math.max(0, (h - w) / 2);
+  }
+  top.style.height = maskH + 'px';
+  bot.style.height = maskH + 'px';
+}
+
+// ============================================================
+// GRAIN - PRE-BAKED FRAMES
+// ============================================================
+function prebakeGrainFrames(w, h, amount) {
+  grainFrames = [];
+  if (amount <= 0) return;
+  for (let f = 0; f < GRAIN_FRAME_COUNT; f++) {
+    const id = gCtx.createImageData(w, h);
+    const d = id.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (Math.random() - 0.5) * amount * 230;
+      const v = 128 + n;
+      d[i] = v; d[i+1] = v; d[i+2] = v;
+      d[i+3] = Math.abs(n) * 1.6;
+    }
+    grainFrames.push(id);
+  }
+}
+
+function ensureGrainCached(totalGrain, w, h) {
+  if (totalGrain !== cachedGrainAmount || w !== cachedGrainW || h !== cachedGrainH) {
+    cachedGrainAmount = totalGrain;
+    cachedGrainW = w; cachedGrainH = h;
+    prebakeGrainFrames(w, h, totalGrain);
+  }
+}
+
+// ============================================================
+// RENDER LOOP
+// ============================================================
+function startRenderLoop() {
+  renderRunning = true;
+  requestAnimationFrame(renderFrame);
+}
+
+let evReadTimer = 0;
+function renderFrame(ts) {
+  if (!renderRunning) return;
+  requestAnimationFrame(renderFrame);
+  if (videoEl.readyState < 2) return;
+
+  const w = viewfinder.width, h = viewfinder.height;
+  const filter = getCurrentFilter();
+
+  // Mirror transform for front camera
+  if (facingMode === 'user' && mirrorFront) {
+    vfCtx.save();
+    vfCtx.scale(-1, 1);
+    vfCtx.translate(-w, 0);
+  }
+
+  vfCtx.filter = filter.css || 'none';
+  vfCtx.drawImage(videoEl, 0, 0, w, h);
+  vfCtx.filter = 'none';
+
+  if (facingMode === 'user' && mirrorFront) vfCtx.restore();
+
+  if (filter.custom && filter.channels) {
+    applyCustomChannels(vfCtx, filter, w, h);
+  }
+
+  vignetteEl.style.opacity = (filter.vignette || 0).toFixed(2);
+
+  // Grain animation — throttle to ~12fps
+  if (ts - lastGrainTime > 82) {
+    lastGrainTime = ts;
+    const totalGrain = (filter.grain || 0) + extraGrain / 100;
+    if (totalGrain > 0) {
+      ensureGrainCached(totalGrain, w, h);
+      if (grainFrames.length > 0) {
+        grainFrameIdx = (grainFrameIdx + 1) % grainFrames.length;
+        gCtx.putImageData(grainFrames[grainFrameIdx], 0, 0);
+        grainCanvas.style.opacity = '0.55';
+      }
+    } else {
+      grainCanvas.style.opacity = '0';
+    }
+  }
+
+  // EV meter (sample every 2s)
+  evReadTimer += ts;
+  if (evReadTimer > 2000) {
+    evReadTimer = 0;
+    if (!aeLocked) {
+      updateEVMeter(vfCtx, w, h);
+    }
+  }
+}
+
+function updateEVMeter(ctx, w, h) {
+  try {
+    const sample = ctx.getImageData(w/4, h/4, w/2, h/2);
+    const d = sample.data;
+    let sum = 0;
+    const step = 40;
+    let count = 0;
+    for (let i = 0; i < d.length; i += step * 4) {
+      sum += (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
+      count++;
+    }
+    const avg = sum / count / 255;
+    document.getElementById('ev-fill').style.width = (avg * 100) + '%';
+  } catch(e) {}
+}
+
+// ============================================================
+// CHANNEL PROCESSING
+// ============================================================
+function applyCustomChannels(ctx, filter, w, h) {
+  const ch = filter.channels;
+  try {
+    const id = ctx.getImageData(0, 0, w, h);
+    const d = id.data;
+    const rM = (ch.r / 100) * (1 - ch.cy / 100);
+    const gM = (ch.g / 100) * (1 - ch.mg / 100);
+    const bM = (ch.b / 100) * (1 - ch.yw / 100);
+    // Temperature shift: warm = more R/less B, cool = more B/less R
+    const tmp = (ch.tmp || 0) / 100;
+    const tnt = (ch.tnt || 0) / 100;
+    const fade = (ch.fade || 0);
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i] * rM + tmp * 12;
+      let g = d[i+1] * gM + tnt * 8;
+      let b = d[i+2] * bM - tmp * 12;
+      // Fade lifts shadows
+      r = r + fade * (1 - r / 255) * 0.8;
+      g = g + fade * (1 - g / 255) * 0.8;
+      b = b + fade * (1 - b / 255) * 0.8;
+      d[i]   = Math.min(255, Math.max(0, r));
+      d[i+1] = Math.min(255, Math.max(0, g));
+      d[i+2] = Math.min(255, Math.max(0, b));
+    }
+    ctx.putImageData(id, 0, 0);
+  } catch(e) {}
+}
+
+function drawVignetteOnCanvas(ctx, strength, w, h) {
+  if (strength <= 0) return;
+  const grad = ctx.createRadialGradient(w/2, h/2, h * 0.25, w/2, h/2, h * 0.82);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, `rgba(0,0,0,${Math.min(0.93, strength)})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function bakeGrainOnCanvas(ctx, amount, w, h) {
+  if (amount <= 0) return;
+  const id = ctx.getImageData(0, 0, w, h);
+  const d = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * amount * 130;
+    d[i]   = Math.min(255, Math.max(0, d[i]   + n));
+    d[i+1] = Math.min(255, Math.max(0, d[i+1] + n));
+    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n));
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+// ============================================================
+// DATE STAMP
+// ============================================================
+function getDateStampText() {
+  const d = new Date();
+  return `${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function updateDateStampDisplay() {
+  const el = document.getElementById('datestamp-overlay');
+  if (dateStamp) {
+    el.textContent = getDateStampText();
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+function drawDateStamp(ctx, w, h) {
+  if (!dateStamp) return;
+  const text = getDateStampText();
+  const size = Math.max(12, w * 0.022);
+  ctx.save();
+  ctx.font = `${size}px 'Courier New', monospace`;
+  ctx.fillStyle = 'rgba(255, 155, 0, 0.88)';
+  ctx.shadowColor = 'rgba(255,80,0,0.6)';
+  ctx.shadowBlur = 6;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(text, w - w * 0.025, h - h * 0.025);
+  ctx.restore();
+}
+
+// ============================================================
+// CAPTURE
+// ============================================================
+function triggerCapture() {
+  if (timerMode > 0) {
+    startTimerCapture();
+  } else {
+    capturePhoto();
+  }
+}
+
+function startTimerCapture() {
+  if (timerTimeout) return;
+  let count = timerMode;
+  const overlay = document.getElementById('timer-overlay');
+  const numEl = document.getElementById('timer-num');
+  document.getElementById('btn-shutter').classList.add('timer-active');
+  overlay.classList.add('show');
+  numEl.textContent = count;
+
+  const tick = () => {
+    count--;
+    numEl.textContent = count;
+    // Force reflow for animation restart
+    numEl.style.animation = 'none';
+    void numEl.offsetWidth;
+    numEl.style.animation = '';
+    if (count <= 0) {
+      overlay.classList.remove('show');
+      document.getElementById('btn-shutter').classList.remove('timer-active');
+      capturePhoto();
+      timerTimeout = null;
+    } else {
+      timerTimeout = setTimeout(tick, 1000);
+    }
+    navigator.vibrate && navigator.vibrate(30);
+  };
+  navigator.vibrate && navigator.vibrate(30);
+  timerTimeout = setTimeout(tick, 1000);
+}
+
+function capturePhoto() {
+  if (flashEnabled) {
+    flashEl.classList.remove('flash');
+    void flashEl.offsetWidth;
+    flashEl.classList.add('flash');
+  }
+  navigator.vibrate && navigator.vibrate([40, 20, 20]);
+
+  // Shutter ring animation
+  const btn = document.getElementById('btn-shutter');
+  btn.classList.remove('shutter-ring');
+  void btn.offsetWidth;
+  btn.classList.add('shutter-ring');
+
+  const filter = getCurrentFilter();
+  const vW = videoEl.videoWidth || window.innerWidth;
+  const vH = videoEl.videoHeight || window.innerHeight;
+
+  // Determine crop area based on aspect ratio
+  let cropX = 0, cropY = 0, cropW = vW, cropH = vH;
+  if (aspectRatio !== 'full') {
+    let targetRatio;
+    if (aspectRatio === '16:9') targetRatio = 16/9;
+    else if (aspectRatio === '4:3') targetRatio = 4/3;
+    else if (aspectRatio === '1:1') targetRatio = 1;
+    const videoRatio = vW / vH;
+    if (targetRatio < videoRatio) {
+      cropW = vH * targetRatio;
+      cropX = (vW - cropW) / 2;
+    } else {
+      cropH = vW / targetRatio;
+      cropY = (vH - cropH) / 2;
+    }
+  }
+
+  const out = document.createElement('canvas');
+  out.width = cropW; out.height = cropH;
+  const outCtx = out.getContext('2d');
+
+  if (facingMode === 'user' && mirrorFront) {
+    outCtx.save();
+    outCtx.scale(-1, 1);
+    outCtx.translate(-cropW, 0);
+    outCtx.filter = filter.css || 'none';
+    outCtx.drawImage(videoEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    outCtx.filter = 'none';
+    outCtx.restore();
+  } else {
+    outCtx.filter = filter.css || 'none';
+    outCtx.drawImage(videoEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    outCtx.filter = 'none';
+  }
+
+  if (filter.custom && filter.channels) {
+    applyCustomChannels(outCtx, filter, cropW, cropH);
+  }
+
+  // Apply AE lock brightness
+  if (aeLocked && aeLockedBrightness !== null) {
+    const currentBri = sampleBrightness(outCtx, cropW, cropH);
+    if (currentBri > 0) {
+      const bAdj = Math.min(2, Math.max(0.3, aeLockedBrightness / currentBri));
+      outCtx.globalCompositeOperation = bAdj > 1 ? 'screen' : 'multiply';
+      outCtx.fillStyle = `rgba(${bAdj > 1 ? 255 : 0},${bAdj > 1 ? 255 : 0},${bAdj > 1 ? 255 : 0},${Math.abs(bAdj - 1) * 0.4})`;
+      outCtx.fillRect(0, 0, cropW, cropH);
+      outCtx.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  drawVignetteOnCanvas(outCtx, filter.vignette || 0, cropW, cropH);
+  bakeGrainOnCanvas(outCtx, (filter.grain || 0) + extraGrain / 100, cropW, cropH);
+  drawDateStamp(outCtx, cropW, cropH);
+
+  const dataUrl = out.toDataURL('image/jpeg', 0.94);
+  const photo = {
+    id: Date.now(),
+    dataUrl,
+    filter: filter.name,
+    filterCss: filter.css,
+    settings: { iso: ISO_VALS[isoIdx], ss: SS_VALS[ssIdx], ap: AP_VALS[apIdx] },
+    ts: Date.now()
+  };
+  photos.unshift(photo);
+  if (photos.length > 36) photos = photos.slice(0, 36);
+  savePhotos();
+  updateRollThumb();
+  showSnapPreview(dataUrl);
+}
+
+function sampleBrightness(ctx, w, h) {
+  try {
+    const s = ctx.getImageData(w/4, h/4, w/2, h/2);
+    let sum = 0; let count = 0;
+    for (let i = 0; i < s.data.length; i += 40) {
+      sum += s.data[i] * 0.299 + s.data[i+1] * 0.587 + s.data[i+2] * 0.114;
+      count++;
+    }
+    return sum / count / 255;
+  } catch(e) { return 0.5; }
+}
+
+function showSnapPreview(src) {
+  const el = document.getElementById('snap-preview');
+  el.src = src;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ============================================================
+// AE LOCK
+// ============================================================
+function lockExposure() {
+  if (!aeLocked) {
+    aeLocked = true;
+    aeLockedBrightness = sampleBrightness(vfCtx, viewfinder.width, viewfinder.height);
+    document.getElementById('ael-badge').classList.add('show');
+    focusRing.classList.add('locked');
+    navigator.vibrate && navigator.vibrate([60, 30, 60]);
+    setTimeout(() => focusRing.classList.remove('locked'), 800);
+  } else {
+    aeLocked = false;
+    aeLockedBrightness = null;
+    document.getElementById('ael-badge').classList.remove('show');
+  }
+}
+
+// ============================================================
+// ZOOM
+// ============================================================
+function applyZoom(zoom) {
+  zoom = Math.min(8, Math.max(1, zoom));
+  currentZoom = zoom;
+  const track = videoEl.srcObject?.getVideoTracks()[0];
+  if (track) {
+    const caps = track.getCapabilities();
+    if (caps && caps.zoom) {
+      const zMin = caps.zoom.min || 1;
+      const zMax = caps.zoom.max || 8;
+      track.applyConstraints({ advanced: [{ zoom: Math.min(zMax, Math.max(zMin, zoom * zMin)) }] })
+        .catch(() => {});
+    }
+  }
+  updateZoomBadge();
+}
+
+function updateZoomBadge() {
+  const badge = document.getElementById('zoom-badge');
+  badge.textContent = currentZoom.toFixed(1) + '×';
+  badge.classList.add('show');
+  clearTimeout(badge._hideTimer);
+  badge._hideTimer = setTimeout(() => badge.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// TOUCH HANDLERS
+// ============================================================
+const vfWrap = document.getElementById('viewfinder-wrap');
+
+vfWrap.addEventListener('touchstart', e => {
+  if (filterSheetOpen || settingsPanelOpen) return;
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    pinchActive = false;
+    // Show focus ring at touch point
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    focusRing.style.left = x + 'px';
+    focusRing.style.top = y + 'px';
+    focusRing.classList.add('show');
+    clearTimeout(focusHideTimeout);
+    focusHideTimeout = setTimeout(() => focusRing.classList.remove('show'), 1800);
+  } else if (e.touches.length === 2) {
+    pinchActive = true;
+    pinchStartDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    pinchStartZoom = currentZoom;
+    e.preventDefault();
+  }
+}, {passive: false});
+
+vfWrap.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && pinchActive) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const scale = dist / pinchStartDist;
+    applyZoom(pinchStartZoom * scale);
+    e.preventDefault();
+  }
+}, {passive: false});
+
+vfWrap.addEventListener('touchend', e => {
+  if (filterSheetOpen || settingsPanelOpen || pinchActive) {
+    if (e.touches.length === 0) pinchActive = false;
+    return;
+  }
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
+    const all = getAllFilters();
+    activeFilterIdx = dx < 0
+      ? (activeFilterIdx + 1) % all.length
+      : (activeFilterIdx - 1 + all.length) % all.length;
+    updateFilterDisplay();
+  }
+}, {passive: true});
+
+// Shutter long press → AE lock
+const shutterBtn = document.getElementById('btn-shutter');
+shutterBtn.addEventListener('touchstart', () => {
+  shutterLongPressTimer = setTimeout(() => {
+    lockExposure();
+    shutterLongPressTimer = null;
+  }, 700);
+}, {passive: true});
+shutterBtn.addEventListener('touchend', () => {
+  if (shutterLongPressTimer) {
+    clearTimeout(shutterLongPressTimer);
+    shutterLongPressTimer = null;
+    triggerCapture();
+  }
+}, {passive: true});
+shutterBtn.addEventListener('touchcancel', () => {
+  clearTimeout(shutterLongPressTimer);
+  shutterLongPressTimer = null;
+}, {passive: true});
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateHUD() {
+  document.getElementById('iso-val').textContent = ISO_VALS[isoIdx];
+  document.getElementById('ss-val').textContent = SS_VALS[ssIdx];
+  document.getElementById('ap-val').textContent = AP_VALS[apIdx];
+  document.getElementById('iso-dial').textContent = ISO_VALS[isoIdx];
+  document.getElementById('ss-dial').textContent = SS_VALS[ssIdx];
+  document.getElementById('ap-dial').textContent = AP_VALS[apIdx].replace('f/','');
+}
+
+function updateFilterDisplay() {
+  const f = getCurrentFilter();
+  document.getElementById('filter-name-display').textContent = f.name;
+  document.getElementById('photo-counter').textContent = photos.length + ' frames';
+}
+
+function updateRollThumb() {
+  const thumb = document.getElementById('roll-thumb');
+  const icon = document.getElementById('roll-icon');
+  const cnt = document.getElementById('roll-count');
+  if (photos.length > 0) {
+    thumb.src = photos[0].dataUrl;
+    thumb.style.display = 'block';
+    icon.style.display = 'none';
+    cnt.textContent = photos.length;
+  } else {
+    thumb.style.display = 'none';
+    icon.style.display = 'block';
+    cnt.textContent = 'ROLL';
+  }
+  document.getElementById('photo-counter').textContent = photos.length + ' frames';
+}
+
+// ============================================================
+// TIMER MODE
+// ============================================================
+const TIMER_MODES = [0, 3, 10];
+const TIMER_LABELS = ['OFF', '3s', '10s'];
+function cycleTimer() {
+  if (timerTimeout) {
+    clearTimeout(timerTimeout);
+    timerTimeout = null;
+    document.getElementById('timer-overlay').classList.remove('show');
+    document.getElementById('btn-shutter').classList.remove('timer-active');
+  }
+  const idx = (TIMER_MODES.indexOf(timerMode) + 1) % TIMER_MODES.length;
+  timerMode = TIMER_MODES[idx];
+  document.getElementById('timer-label').textContent = TIMER_LABELS[idx];
+  document.getElementById('btn-timer').classList.toggle('active', timerMode > 0);
+}
+
+// ============================================================
+// FILTER SHEET
+// ============================================================
+function openFilterSheet() {
+  filterSheetOpen = true;
+  document.getElementById('filter-sheet').classList.add('open');
+  setTimeout(renderFilterThumbs, 80);
+}
+
+function closeFilterSheet() {
+  filterSheetOpen = false;
+  document.getElementById('filter-sheet').classList.remove('open');
+}
+
+function renderFilterThumbs() {
+  const snap = document.createElement('canvas');
+  snap.width = 68; snap.height = 68;
+  const sCtx = snap.getContext('2d');
+  sCtx.drawImage(viewfinder, 0, 0, viewfinder.width, viewfinder.height, 0, 0, 68, 68);
+
+  const all = getAllFilters();
+  const predicate = FILTER_CATS[currentCat] || FILTER_CATS.all;
+  const filtered = all.filter(predicate);
+
+  const container = document.getElementById('main-filter-scroll');
+  container.innerHTML = '';
+  filtered.forEach(f => {
+    const globalIdx = all.findIndex(x => x.id === f.id);
+    const item = document.createElement('div');
+    item.className = 'filter-item' + (globalIdx === activeFilterIdx ? ' active' : '');
+    item.dataset.idx = globalIdx;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'filter-thumb-wrap';
+    const tc = document.createElement('canvas');
+    tc.width = 68; tc.height = 68;
+    const tCtx = tc.getContext('2d');
+    tCtx.filter = f.css || 'none';
+    tCtx.drawImage(snap, 0, 0);
+    tCtx.filter = 'none';
+    if (f.custom && f.channels) {
+      // Quick channel application for thumbnail
+      try {
+        const id = tCtx.getImageData(0, 0, 68, 68);
+        const d = id.data;
+        const ch = f.channels;
+        const rM = (ch.r/100) * (1 - ch.cy/100);
+        const gM = (ch.g/100) * (1 - ch.mg/100);
+        const bM = (ch.b/100) * (1 - ch.yw/100);
+        const tmp = (ch.tmp||0)/100, fade = (ch.fade||0);
+        for (let i = 0; i < d.length; i += 4) {
+          d[i]   = Math.min(255, Math.max(0, d[i]*rM + tmp*12 + fade*0.5));
+          d[i+1] = Math.min(255, Math.max(0, d[i+1]*gM + fade*0.5));
+          d[i+2] = Math.min(255, Math.max(0, d[i+2]*bM - tmp*12 + fade*0.5));
+        }
+        tCtx.putImageData(id, 0, 0);
+      } catch(e) {}
+    }
+    drawVignetteOnCanvas(tCtx, f.vignette || 0, 68, 68);
+    wrap.appendChild(tc);
+
+    const favBtn = document.createElement('button');
+    favBtn.className = 'fav-btn' + (favorites.has(f.id) ? ' faved' : '');
+    favBtn.textContent = '★';
+    favBtn.type = 'button';
+    favBtn.onclick = e => { e.stopPropagation(); toggleFavorite(f.id); renderFilterThumbs(); };
+    wrap.appendChild(favBtn);
+
+    if (f.custom) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '×';
+      delBtn.type = 'button';
+      delBtn.onclick = e => { e.stopPropagation(); deleteCustomFilter(f.id); renderFilterThumbs(); };
+      wrap.appendChild(delBtn);
+    }
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'filter-item-name';
+    nameEl.textContent = f.name;
+
+    item.appendChild(wrap);
+    item.appendChild(nameEl);
+    item.onclick = () => selectFilter(globalIdx);
+    container.appendChild(item);
+  });
+}
+
+function selectFilter(idx) {
+  const all = getAllFilters();
+  if (idx < 0 || idx >= all.length) return;
+  activeFilterIdx = idx;
+  grainFrames = []; // Invalidate grain cache for new filter
+  updateFilterDisplay();
+  document.querySelectorAll('.filter-item').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.idx) === idx);
+  });
+}
+
+function toggleFavorite(id) {
+  if (favorites.has(id)) favorites.delete(id);
+  else favorites.add(id);
+  localStorage.setItem('lm_favs', JSON.stringify([...favorites]));
+}
+
+function deleteCustomFilter(id) {
+  customFilters = customFilters.filter(f => f.id !== id);
+  localStorage.setItem('lm_custom', JSON.stringify(customFilters));
+  if (activeFilterIdx >= getAllFilters().length) activeFilterIdx = 0;
+  updateFilterDisplay();
+}
+
+// ============================================================
+// CAMERA ROLL
+// ============================================================
+function showRoll() {
+  document.getElementById('screen-roll').classList.add('open');
+  renderRollGrid();
+}
+
+function hideRoll() {
+  document.getElementById('screen-roll').classList.remove('open');
+}
+
+function renderRollGrid() {
+  const grid = document.getElementById('roll-grid');
+  const empty = document.getElementById('roll-empty');
+  document.getElementById('roll-photo-count').textContent = photos.length + ' frames';
+  if (!photos.length) { grid.innerHTML = ''; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = '';
+  photos.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'roll-item';
+    const img = document.createElement('img');
+    img.src = p.dataUrl;
+    img.loading = 'lazy';
+    const overlay = document.createElement('div');
+    overlay.className = 'roll-item-overlay';
+    const label = document.createElement('div');
+    label.className = 'roll-item-filter';
+    label.textContent = p.filter;
+    const del = document.createElement('button');
+    del.className = 'roll-item-del';
+    del.textContent = '×';
+    del.type = 'button';
+    del.onclick = e => { e.stopPropagation(); deletePhoto(p.id); };
+    item.appendChild(img);
+    item.appendChild(overlay);
+    item.appendChild(label);
+    item.appendChild(del);
+    item.onclick = () => openPhotoViewer(p.id);
+    grid.appendChild(item);
+  });
+}
+
+function deletePhoto(id) {
+  photos = photos.filter(p => p.id !== id);
+  savePhotos();
+  updateRollThumb();
+  renderRollGrid();
+  if (currentViewerPhoto && currentViewerPhoto.id === id) {
+    closePhotoViewer();
+  }
+}
+
+// ============================================================
+// PHOTO VIEWER
+// ============================================================
+function openPhotoViewer(photoId) {
+  currentViewerPhoto = photos.find(p => p.id === photoId);
+  if (!currentViewerPhoto) return;
+  const img = document.getElementById('viewer-img');
+  img.src = currentViewerPhoto.dataUrl;
+  document.getElementById('viewer-filter-name').textContent = currentViewerPhoto.filter;
+  const s = currentViewerPhoto.settings;
+  document.getElementById('viewer-settings').textContent = `ISO ${s.iso}  ${s.ss}  ${s.ap}`;
+  document.getElementById('screen-viewer').classList.add('open');
+}
+
+function closePhotoViewer() {
+  document.getElementById('screen-viewer').classList.remove('open');
+  currentViewerPhoto = null;
+}
+
+// ============================================================
+// PHOTO EDITOR
+// ============================================================
+let editorSourcePhoto = null;
+
+function openPhotoEditor(photoId) {
+  editorSourcePhoto = photos.find(p => p.id === (photoId || (currentViewerPhoto && currentViewerPhoto.id)));
+  if (!editorSourcePhoto) return;
+  ['exposure','contrast','saturation','warmth','highlights','shadows','grain','vignette'].forEach(k => {
+    document.getElementById('ed-'+k).value = 0;
+    document.getElementById('ev-'+k).textContent = 0;
+  });
+  document.getElementById('screen-editor').classList.add('open');
+  renderEditorCanvas();
+}
+
+function closePhotoEditor() {
+  document.getElementById('screen-editor').classList.remove('open');
+}
+
+function renderEditorCanvas() {
+  if (!editorSourcePhoto) return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('editor-canvas');
+    const wrap = document.getElementById('editor-img-wrap');
+    const maxW = wrap.clientWidth, maxH = wrap.clientHeight;
+    const scale = Math.min(maxW / img.width, maxH / img.height);
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    const ctx = canvas.getContext('2d');
+    const exp = parseFloat(document.getElementById('ed-exposure').value);
+    const con = parseFloat(document.getElementById('ed-contrast').value);
+    const sat = parseFloat(document.getElementById('ed-saturation').value);
+    const warmth = parseFloat(document.getElementById('ed-warmth').value);
+    ctx.filter = `brightness(${1 + exp/100}) contrast(${1 + con/100}) saturate(${1 + sat/100}) hue-rotate(${warmth * 0.25}deg)`;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.filter = 'none';
+
+    const hl = parseFloat(document.getElementById('ed-highlights').value) / 100;
+    const sh = parseFloat(document.getElementById('ed-shadows').value) / 100;
+    if (hl !== 0 || sh !== 0) {
+      const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = (d[i] + d[i+1] + d[i+2]) / 765;
+        const hlM = lum > 0.5 ? hl * (lum - 0.5) * 2 * 40 : 0;
+        const shM = lum < 0.5 ? sh * (0.5 - lum) * 2 * 40 : 0;
+        d[i]   = Math.min(255, Math.max(0, d[i]   + hlM - shM));
+        d[i+1] = Math.min(255, Math.max(0, d[i+1] + hlM - shM));
+        d[i+2] = Math.min(255, Math.max(0, d[i+2] + hlM - shM));
+      }
+      ctx.putImageData(id, 0, 0);
+    }
+    const vig = parseFloat(document.getElementById('ed-vignette').value) / 100;
+    drawVignetteOnCanvas(ctx, vig * 0.9, canvas.width, canvas.height);
+    const grain = parseFloat(document.getElementById('ed-grain').value) / 100;
+    bakeGrainOnCanvas(ctx, grain, canvas.width, canvas.height);
+  };
+  img.src = editorSourcePhoto.dataUrl;
+}
+
+function saveEditedPhoto() {
+  const canvas = document.getElementById('editor-canvas');
+  const filename = 'lomino_' + Date.now() + '.jpg';
+  // Try canvas.toBlob for better performance
+  if (canvas.toBlob) {
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      downloadFile(url, filename);
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }, 'image/jpeg', 0.95);
+  } else {
+    downloadFile(canvas.toDataURL('image/jpeg', 0.95), filename);
+  }
+}
+
+function savePhotoDirectly(photo) {
+  if (!photo) return;
+  const filename = 'lomino_' + photo.id + '.jpg';
+  downloadFile(photo.dataUrl, filename);
+}
+
+function downloadFile(src, filename) {
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // iOS fallback
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    const w = window.open('', '_blank');
+    if (w) {
+      w.document.write(`<html><head><title>Save Photo</title><meta name="viewport" content="width=device-width"><style>body{background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;gap:16px;}img{max-width:100%;display:block;}p{font-family:sans-serif;color:#888;font-size:13px;text-align:center;padding:0 20px;}</style></head><body><img src="${src}"><p>Long-press the image and choose "Add to Photos" or "Save to Files".</p></body></html>`);
+      w.document.close();
+    }
+  }
+}
+
+// ============================================================
+// FILTER CREATOR
+// ============================================================
+function openCreator(filterToEdit) {
+  editingFilterId = filterToEdit ? filterToEdit.id : null;
+  if (filterToEdit) {
+    document.getElementById('creator-name-input').value = filterToEdit.name;
+    const ch = filterToEdit.channels || {};
+    setCSl('r', ch.r||100); setCSl('g', ch.g||100); setCSl('b', ch.b||100);
+    setCSl('cy', ch.cy||0); setCSl('mg', ch.mg||0); setCSl('yw', ch.yw||0);
+    setCSl('tmp', ch.tmp||0); setCSl('tnt', ch.tnt||0); setCSl('fde', ch.fde||0);
+    const p = parseCSSFilter(filterToEdit.css || '');
+    setCSl('hue', p.hue); setCSl('sat', Math.round(p.sat*100)); setCSl('bri', Math.round(p.bri*100)); setCSl('con', Math.round(p.con*100));
+    setCSl('vig', Math.round((filterToEdit.vignette||0.2)*100)); setCSl('grn', Math.round((filterToEdit.grain||0.05)*100));
+  } else {
+    document.getElementById('creator-name-input').value = 'My Stock';
+    ['r','g','b'].forEach(k => setCSl(k, 100));
+    ['cy','mg','yw','tmp','tnt','hue','fde'].forEach(k => setCSl(k, 0));
+    setCSl('sat',100); setCSl('bri',100); setCSl('con',100);
+    setCSl('vig',20); setCSl('grn',5);
+  }
+  creatorSnapshot = document.createElement('canvas');
+  creatorSnapshot.width = window.innerWidth;
+  creatorSnapshot.height = 160;
+  const sc = creatorSnapshot.getContext('2d');
+  sc.drawImage(viewfinder, 0, 0, viewfinder.width, viewfinder.height, 0, 0, window.innerWidth, 160);
+  document.getElementById('screen-creator').classList.add('open');
+  renderCreatorPreview();
+}
+
+function setCSl(key, val) {
+  const sl = document.getElementById('cs-' + key);
+  if (sl) { sl.value = val; updateCLabel(key, val); }
+}
+
+function updateCLabel(key, val) {
+  const vl = document.getElementById('cv-' + key);
+  if (!vl) return;
+  vl.textContent = key === 'hue' ? val + '°' : val;
+}
+
+function parseCSSFilter(css) {
+  const r = {hue:0, sat:1, bri:1, con:1};
+  const hm = css.match(/hue-rotate\(([-\d.]+)deg\)/);
+  const sm = css.match(/saturate\(([\d.]+)\)/);
+  const bm = css.match(/brightness\(([\d.]+)\)/);
+  const cm = css.match(/contrast\(([\d.]+)\)/);
+  if (hm) r.hue = parseFloat(hm[1]);
+  if (sm) r.sat = parseFloat(sm[1]);
+  if (bm) r.bri = parseFloat(bm[1]);
+  if (cm) r.con = parseFloat(cm[1]);
+  return r;
+}
+
+function getCreatorParams() {
+  const g = id => parseFloat(document.getElementById(id).value);
+  return {
+    r:g('cs-r'), g:g('cs-g'), b:g('cs-b'),
+    cy:g('cs-cy'), mg:g('cs-mg'), yw:g('cs-yw'),
+    tmp:g('cs-tmp'), tnt:g('cs-tnt'), fde:g('cs-fde'),
+    hue:g('cs-hue'), sat:g('cs-sat'), bri:g('cs-bri'), con:g('cs-con'),
+    vig:g('cs-vig'), grn:g('cs-grn'),
+  };
+}
+
+function buildCreatorCSS(p) {
+  const pts = [];
+  if (p.hue !== 0) pts.push(`hue-rotate(${p.hue}deg)`);
+  if (p.sat !== 100) pts.push(`saturate(${p.sat/100})`);
+  if (p.bri !== 100) pts.push(`brightness(${p.bri/100})`);
+  if (p.con !== 100) pts.push(`contrast(${p.con/100})`);
+  return pts.join(' ');
+}
+
+let creatorDebounce = null;
+function renderCreatorPreview() {
+  clearTimeout(creatorDebounce);
+  creatorDebounce = setTimeout(_renderCreatorPreview, 40);
+}
+
+function _renderCreatorPreview() {
+  if (!creatorSnapshot) return;
+  const canvas = document.getElementById('creator-preview-canvas');
+  canvas.width = creatorSnapshot.width;
+  canvas.height = creatorSnapshot.height;
+  const ctx = canvas.getContext('2d');
+  const p = getCreatorParams();
+  ctx.filter = buildCreatorCSS(p);
+  ctx.drawImage(creatorSnapshot, 0, 0);
+  ctx.filter = 'none';
+  // Apply custom channels
+  try {
+    const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = id.data;
+    const rM = (p.r/100)*(1-p.cy/100), gM = (p.g/100)*(1-p.mg/100), bM = (p.b/100)*(1-p.yw/100);
+    const tmp = p.tmp/100, tnt = p.tnt/100, fade = p.fde;
+    for (let i = 0; i < d.length; i += 4) {
+      d[i]   = Math.min(255, Math.max(0, d[i]*rM + tmp*12 + fade*0.8));
+      d[i+1] = Math.min(255, Math.max(0, d[i+1]*gM + tnt*8 + fade*0.8));
+      d[i+2] = Math.min(255, Math.max(0, d[i+2]*bM - tmp*12 + fade*0.8));
+    }
+    ctx.putImageData(id, 0, 0);
+  } catch(e) {}
+  drawVignetteOnCanvas(ctx, p.vig/100, canvas.width, canvas.height);
+}
+
+function saveCustomFilter() {
+  const p = getCreatorParams();
+  const name = document.getElementById('creator-name-input').value.trim() || 'My Stock';
+  const id = editingFilterId || ('custom_' + Date.now());
+  const filter = {
+    id, name, cat: 'custom', custom: true,
+    css: buildCreatorCSS(p),
+    channels: { r:p.r, g:p.g, b:p.b, cy:p.cy, mg:p.mg, yw:p.yw, tmp:p.tmp, tnt:p.tnt, fde:p.fde },
+    vignette: p.vig/100,
+    grain: p.grn/100,
+  };
+  if (editingFilterId) {
+    const idx = customFilters.findIndex(f => f.id === editingFilterId);
+    if (idx >= 0) customFilters[idx] = filter;
+    else customFilters.push(filter);
+  } else {
+    customFilters.push(filter);
+  }
+  localStorage.setItem('lm_custom', JSON.stringify(customFilters));
+  closeCreator();
+  const all = getAllFilters();
+  activeFilterIdx = all.findIndex(f => f.id === id);
+  updateFilterDisplay();
+}
+
+function closeCreator() {
+  document.getElementById('screen-creator').classList.remove('open');
+}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function savePhotos() {
+  try {
+    localStorage.setItem('lm_photos', JSON.stringify(photos));
+  } catch(e) {
+    photos = photos.slice(0, 12);
+    try { localStorage.setItem('lm_photos', JSON.stringify(photos)); } catch(e2) {}
+  }
+}
+
+// ============================================================
+// SETTINGS PANEL
+// ============================================================
+function openSettings() {
+  settingsPanelOpen = true;
+  document.getElementById('settings-panel').classList.add('open');
+  if (filterSheetOpen) closeFilterSheet();
+}
+
+function closeSettings() {
+  settingsPanelOpen = false;
+  document.getElementById('settings-panel').classList.remove('open');
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+document.getElementById('btn-allow-cam').onclick = initCamera;
+document.getElementById('btn-shutter').onclick = null; // handled by touchstart/end above
+// Desktop fallback for shutter
+document.getElementById('btn-shutter').addEventListener('mousedown', () => {
+  shutterLongPressTimer = setTimeout(() => { lockExposure(); shutterLongPressTimer = null; }, 700);
+});
+document.getElementById('btn-shutter').addEventListener('mouseup', () => {
+  if (shutterLongPressTimer) {
+    clearTimeout(shutterLongPressTimer);
+    shutterLongPressTimer = null;
+    triggerCapture();
+  }
+});
+document.getElementById('btn-shutter').addEventListener('mouseleave', () => {
+  clearTimeout(shutterLongPressTimer);
+  shutterLongPressTimer = null;
+});
+
+document.getElementById('btn-filter-toggle').onclick = () => filterSheetOpen ? closeFilterSheet() : openFilterSheet();
+document.getElementById('btn-close-sheet').onclick = closeFilterSheet;
+document.getElementById('btn-roll').onclick = showRoll;
+document.getElementById('btn-close-roll').onclick = hideRoll;
+document.getElementById('btn-close-editor').onclick = closePhotoEditor;
+document.getElementById('btn-discard').onclick = closePhotoEditor;
+document.getElementById('btn-save-photo').onclick = saveEditedPhoto;
+document.getElementById('btn-open-creator').onclick = () => { closeFilterSheet(); openCreator(null); };
+document.getElementById('btn-cancel-creator').onclick = closeCreator;
+document.getElementById('btn-cancel-creator-top').onclick = closeCreator;
+document.getElementById('btn-save-creator').onclick = saveCustomFilter;
+document.getElementById('btn-flip').onclick = flipCamera;
+document.getElementById('btn-timer').onclick = cycleTimer;
+document.getElementById('btn-settings-open').onclick = openSettings;
+document.getElementById('btn-settings-close').onclick = closeSettings;
+
+// Viewer actions
+document.getElementById('btn-close-viewer').onclick = closePhotoViewer;
+document.getElementById('btn-delete-photo').onclick = () => {
+  if (currentViewerPhoto && confirm('Delete this photo?')) {
+    deletePhoto(currentViewerPhoto.id);
+    closePhotoViewer();
+  }
+};
+document.getElementById('btn-edit-photo').onclick = () => {
+  const id = currentViewerPhoto && currentViewerPhoto.id;
+  openPhotoEditor(id);
+};
+document.getElementById('btn-download-photo').onclick = () => savePhotoDirectly(currentViewerPhoto);
+
+// Dials
+document.querySelectorAll('.dbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const dial = btn.dataset.dial, dir = parseInt(btn.dataset.dir);
+    if (dial === 'iso') isoIdx = Math.max(0, Math.min(ISO_VALS.length-1, isoIdx + dir));
+    else if (dial === 'ss') ssIdx = Math.max(0, Math.min(SS_VALS.length-1, ssIdx + dir));
+    else if (dial === 'ap') apIdx = Math.max(0, Math.min(AP_VALS.length-1, apIdx + dir));
+    updateHUD();
+    navigator.vibrate && navigator.vibrate(15);
+  });
+});
+
+// Screen filters
+document.querySelectorAll('.sf-chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('.sf-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    screenFilterMode = chip.dataset.sf;
+    screenFilterEl.className = screenFilterMode !== 'none' ? screenFilterMode : '';
+  };
+});
+
+// Grain slider
+document.getElementById('grain-slider').oninput = function() {
+  extraGrain = parseInt(this.value);
+  document.getElementById('grain-val').textContent = extraGrain;
+  grainFrames = []; // Invalidate cache
+};
+
+// Filter category tabs
+document.querySelectorAll('.fcat').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.fcat').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentCat = tab.dataset.cat;
+    renderFilterThumbs();
+  };
+});
+
+// Creator sliders
+document.querySelectorAll('#creator-sliders input[type=range]').forEach(sl => {
+  sl.oninput = () => {
+    updateCLabel(sl.id.replace('cs-',''), sl.value);
+    renderCreatorPreview();
+  };
+});
+
+// Editor sliders
+document.querySelectorAll('#edit-sliders input[type=range]').forEach(sl => {
+  sl.oninput = () => {
+    document.getElementById('ev-'+sl.id.replace('ed-','')).textContent = sl.value;
+    renderEditorCanvas();
+  };
+});
+
+// Settings toggles and chips
+document.getElementById('tog-datestamp').onchange = function() {
+  dateStamp = this.checked;
+  updateDateStampDisplay();
+};
+document.getElementById('tog-grid').onchange = function() {
+  showGrid = this.checked;
+  document.getElementById('grid-overlay').classList.toggle('show', showGrid);
+};
+document.getElementById('tog-flash').onchange = function() { flashEnabled = this.checked; };
+document.getElementById('tog-mirror').onchange = function() {
+  mirrorFront = this.checked;
+  if (facingMode === 'user') {
+    videoEl.style.transform = mirrorFront ? 'scaleX(-1)' : '';
+  }
+};
+
+document.querySelectorAll('#ratio-chips .opt-chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('#ratio-chips .opt-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    aspectRatio = chip.dataset.ratio;
+    updateAspectMasks();
+  };
+});
+
+document.querySelectorAll('#res-chips .opt-chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('#res-chips .opt-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    useHighRes = chip.dataset.res === 'high';
+  };
+});
+
+// Snap preview tap → roll
+document.getElementById('snap-preview').onclick = showRoll;
+
+// Close sheet when tapping viewfinder behind it
+document.getElementById('viewfinder-wrap').addEventListener('touchstart', () => {
+  if (filterSheetOpen) closeFilterSheet();
+  if (settingsPanelOpen) closeSettings();
+}, {passive: true});
+
+// Swipe down to close settings
+let settingsSwipeStart = 0;
+document.getElementById('settings-panel').addEventListener('touchstart', e => {
+  settingsSwipeStart = e.touches[0].clientX;
+}, {passive: true});
+document.getElementById('settings-panel').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - settingsSwipeStart;
+  if (dx > 70) closeSettings();
+}, {passive: true});
+
+// ============================================================
+// INIT
+// ============================================================
+updateHUD();
+updateFilterDisplay();
+updateRollThumb();
+updateDateStampDisplay();
+
+// Auto-init if permission already granted
+if (navigator.permissions) {
+  navigator.permissions.query({name:'camera'}).then(r => {
+    if (r.state === 'granted') initCamera();
+  }).catch(() => {});
+}
 </script>
 </body>
 </html>
